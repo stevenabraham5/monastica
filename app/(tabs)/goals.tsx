@@ -58,6 +58,21 @@ function DomainCard({
 
         <ProgressBar progress={progress} style={styles.bar} />
 
+        {/* Drift indicator */}
+        {progress < 0.5 && domain.actualHours > 0 && (
+          <View style={styles.driftRow}>
+            <View style={styles.driftDot} />
+            <TempoText variant="data" color={colors.accent}>
+              Cultivator is hunting for time
+            </TempoText>
+          </View>
+        )}
+        {domain.actualHours === 0 && (
+          <TempoText variant="data" color={colors.warning} style={styles.noProg}>
+            No progress this week
+          </TempoText>
+        )}
+
         {expanded && (
           <View style={styles.subGoals}>
             <TempoText variant="label" color={colors.ink3} style={styles.subLabel}>
@@ -154,6 +169,21 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   bar: {
+    marginTop: spacing.sm,
+  },
+  driftRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.sm,
+  },
+  driftDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#2D5A3D',
+  },
+  noProg: {
     marginTop: spacing.sm,
   },
   subGoals: {

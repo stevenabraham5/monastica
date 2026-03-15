@@ -2,12 +2,17 @@ import React, { useState } from 'react';
 import { View, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import { useRouter } from 'expo-router';
 import { TempoText } from '../../components/TempoText';
 import { EnterView } from '../../components/EnterView';
 import { useColors } from '../../constants/colors';
 import { spacing } from '../../constants/spacing';
 import { staggerDelays } from '../../constants/motion';
-import { useAgentStore, AgentAction, personas, PersonaId } from '../../store/agentStore';
+import { useAgentStore, personas } from '../../store/agentStore';
+import type { PersonaId, Escalation, SentinelAction, BookingProposal } from '../../store/types';
+import { CATEGORY_COLORS, CATEGORY_LABELS, ROLE_COLORS } from '../../store/types';
+
+// ── Persona chips ──
 
 function PersonaChip({
   id,
@@ -58,7 +63,7 @@ function PersonaDetail({ id }: { id: PersonaId }) {
         <View style={styles.behaviorList}>
           {persona.behaviors.map((b) => (
             <TempoText key={b} variant="caption" color={colors.ink3}>
-              • {b}
+              {'\u2022'} {b}
             </TempoText>
           ))}
         </View>
@@ -66,6 +71,8 @@ function PersonaDetail({ id }: { id: PersonaId }) {
     </EnterView>
   );
 }
+
+// ── Stat tile ──
 
 function StatTile({ value, label }: { value: string; label: string }) {
   const colors = useColors();
@@ -84,50 +91,191 @@ function StatTile({ value, label }: { value: string; label: string }) {
   );
 }
 
-function ActivityItem({
-  item,
-}: {
-  item: AgentAction;
-}) {
+// ── Sentinel: recent action row ──
+
+function ActionRow({ item }: { item: SentinelAction }) {
   const colors = useColors();
-  const [expanded, setExpanded] = useState(false);
+  const actionLabels: Record<string, string> = {
+    declined: 'Declined',
+    deflected_async: 'Async',
+    agent_attended: 'Agent sent',
+    interrogated: 'Clarified',
+    accepted: 'Accepted',
+  };
 
   return (
-    <Pressable
-      onPress={() => setExpanded(!expanded)}
-      style={[styles.activityItem, { borderBottomColor: colors.border }]}
-      accessibilityRole="button"
-      accessibilityLabel={`${item.action}: ${item.meeting}`}
-    >
+    <View style={[styles.actionRow, { borderBottomColor: colors.border }]}>
       <TempoText variant="label" color={colors.agent}>
-        {item.action}
+        {actionLabels[item.actionType] ?? item.actionType}
       </TempoText>
       <TempoText variant="caption" color={colors.ink} style={styles.meetingName}>
-        {item.meeting}
+        {item.meetingTitle}
       </TempoText>
-      <TempoText variant="data" color={colors.ink3} style={styles.time}>
-        {item.time}
-      </TempoText>
-      {expanded && (
-        <View style={[styles.detailBlock, { backgroundColor: colors.surface }]}>
-          <TempoText variant="data" color={colors.ink2} style={styles.detailText}>
-            {item.detail}
-          </TempoText>
-        </View>
+      {item.minutesSaved != null && (
+        <TempoText variant="data" color={colors.ink3} style={styles.time}>
+          {item.minutesSaved}m saved
+        </TempoText>
       )}
-    </Pressable>
+    </View>
   );
 }
+
+// ── Sentinel: escalation card ──
+
+function EscalationRow({ esc, onResolve }: {
+  esc: Escalation;
+  onResolve: (id: string, decision: 'attend' | 'agent' | 'decline' | 'clarify') => void;
+}) {
+  const colors = useColors();
+  const roleColor = esc.roleClassification ? ROLE_COLORS[esc.roleClassification] : colors.ink3;
+
+  return (
+    <View style={[styles.escalationCard, { backgroundColor: colors.surface, borderLeftColor: roleColor }]}>
+      <View style={styles.escHeader}>
+        <TempoText variant="subheading">{esc.meetingTitle}</TempoText>
+        {esc.roleClassification && (
+          <View style={[styles.roleBadge, { backgroundColor: roleColor }]}>
+            <TempoText variant="data" color="#FFFFFF">
+              {esc.roleClassification}
+            </TempoText>
+          </View>
+        )}
+      </View>
+      <TempoText variant="data" color={colors.ink3} style={styles.escTime}>
+        {esc.organizer} {'\u00B7'} {esc.sentinelConfidence}% confident
+      </TempoText>
+      <TempoText variant="caption" color={colors.ink2} style={styles.escReason}>
+        {esc.reason.replace(/_/g, ' ')}
+      </TempoText>
+      {esc.suggestedQuestions && esc.suggestedQuestions.length > 0 && (
+        <View style={styles.questionList}>
+          {esc.suggestedQuestions.map((q) => (
+            <TempoText key={q} variant="data" color={colors.ink2}>
+              {'\u2022'} {q}
+            </TempoText>
+          ))}
+        </View>
+      )}
+      <View style={styles.escActions}>
+        <Pressable
+          onPress={() => onResolve(esc.id, 'attend')}
+          style={[styles.escButton, { backgroundColor: colors.accent }]}
+          accessibilityLabel="Attend yourself"
+          accessibilityRole="button"
+        >
+          <TempoText variant="caption" color="#FFFFFF">Attend</TempoText>
+        </Pressable>
+        <Pressable
+          onPress={() => onResolve(esc.id, 'agent')}
+          style={[styles.escButton, { backgroundColor: colors.agent }]}
+          accessibilityLabel="Send agent"
+          accessibilityRole="button"
+        >
+          <TempoText variant="caption" color="#FFFFFF">Send agent</TempoText>
+        </Pressable>
+        <Pressable
+          onPress={() => onResolve(esc.id, 'clarify')}
+          style={[styles.escButtonOutline, { borderColor: colors.agent }]}
+          accessibilityLabel="Clarify"
+          accessibilityRole="button"
+        >
+          <TempoText variant="caption" color={colors.agent}>Clarify</TempoText>
+        </Pressable>
+        <Pressable
+          onPress={() => onResolve(esc.id, 'decline')}
+          style={[styles.escButtonOutline, { borderColor: colors.danger }]}
+          accessibilityLabel="Decline"
+          accessibilityRole="button"
+        >
+          <TempoText variant="caption" color={colors.danger}>Decline</TempoText>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+// ── Cultivator: booking proposal card ──
+
+function ProposalRow({ proposal, onAccept, onDefer, onDismiss }: {
+  proposal: BookingProposal;
+  onAccept: (id: string) => void;
+  onDefer: (id: string) => void;
+  onDismiss: (id: string) => void;
+}) {
+  const colors = useColors();
+  const catColor = CATEGORY_COLORS[proposal.category] ?? colors.ink3;
+  const catLabel = CATEGORY_LABELS[proposal.category] ?? proposal.category;
+
+  return (
+    <View style={[styles.proposalCard, { backgroundColor: colors.surface }]}>
+      <View style={styles.proposalHeader}>
+        <View style={[styles.categoryPill, { backgroundColor: catColor }]}>
+          <TempoText variant="data" color="#FFFFFF">{catLabel}</TempoText>
+        </View>
+        <TempoText variant="data" color={colors.ink3}>
+          {proposal.urgencyScore}
+        </TempoText>
+      </View>
+      <TempoText variant="subheading" style={styles.proposalTitle}>
+        {proposal.title}
+      </TempoText>
+      <TempoText variant="caption" color={colors.ink2} style={styles.proposalReason}>
+        {proposal.reason}
+      </TempoText>
+      <View style={styles.proposalActions}>
+        <Pressable
+          onPress={() => onAccept(proposal.id)}
+          style={[styles.escButton, { backgroundColor: colors.accent }]}
+          accessibilityLabel="Book it"
+          accessibilityRole="button"
+        >
+          <TempoText variant="caption" color="#FFFFFF">Book it</TempoText>
+        </Pressable>
+        <Pressable
+          onPress={() => onDefer(proposal.id)}
+          style={[styles.escButtonOutline, { borderColor: colors.ink3 }]}
+          accessibilityLabel="Later"
+          accessibilityRole="button"
+        >
+          <TempoText variant="caption" color={colors.ink3}>Later</TempoText>
+        </Pressable>
+        <Pressable
+          onPress={() => onDismiss(proposal.id)}
+          style={[styles.escButtonOutline, { borderColor: colors.danger }]}
+          accessibilityLabel="Not now"
+          accessibilityRole="button"
+        >
+          <TempoText variant="caption" color={colors.danger}>Not now</TempoText>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+// ── Main screen ──
 
 export default function AgentScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { activeSince, stats: agentStats, escalations, activityFeed, resolveEscalation, persona, setPersona } = useAgentStore();
+  const router = useRouter();
+  const {
+    persona,
+    setPersona,
+    sentinel,
+    cultivator,
+    resolveEscalation,
+    acceptProposal,
+    deferProposal,
+    dismissProposal,
+  } = useAgentStore();
+
+  const pendingEscalations = sentinel.pendingEscalations.filter((e) => e.status === 'pending');
+  const pendingProposals = cultivator.pendingProposals.filter((p) => p.status === 'pending');
 
   const stats = [
-    { value: `${agentStats.hoursReclaimed}h`, label: 'Reclaimed' },
-    { value: String(agentStats.deflected), label: 'Deflected' },
-    { value: String(agentStats.attended), label: 'Attended' },
+    { value: `${sentinel.hoursReclaimed}h`, label: 'Reclaimed' },
+    { value: String(sentinel.declinedThisWeek), label: 'Declined' },
+    { value: String(sentinel.agentAttendedThisWeek), label: 'Agent sent' },
   ];
 
   return (
@@ -142,10 +290,16 @@ export default function AgentScreen() {
       >
         {/* Header */}
         <EnterView delay={staggerDelays[0]}>
-          <TempoText variant="heading">Agent activity</TempoText>
-          <TempoText variant="caption" color={colors.ink2} style={styles.subhead}>
-            Acting on your behalf since {activeSince}
-          </TempoText>
+          <View style={styles.headerRow}>
+            <TempoText variant="heading">Agent</TempoText>
+            <Pressable
+              onPress={() => router.push('/settings')}
+              accessibilityRole="button"
+              accessibilityLabel="Settings"
+            >
+              <TempoText variant="caption" color={colors.ink3}>Settings</TempoText>
+            </Pressable>
+          </View>
         </EnterView>
 
         {/* Persona selector */}
@@ -163,7 +317,19 @@ export default function AgentScreen() {
               />
             ))}
           </View>
-          <PersonaDetail id={persona} />
+          {persona && <PersonaDetail id={persona} />}
+        </EnterView>
+
+        {/* ── SENTINEL ── */}
+        <View style={[styles.separator, { backgroundColor: colors.border }]} />
+
+        <EnterView delay={staggerDelays[2]}>
+          <TempoText variant="label" color={colors.agent} style={styles.sectionLabel}>
+            SENTINEL
+          </TempoText>
+          <TempoText variant="caption" color={colors.ink2}>
+            Defense {'\u00B7'} intercepted {sentinel.interceptedThisWeek} this week
+          </TempoText>
         </EnterView>
 
         {/* Stats row */}
@@ -174,75 +340,58 @@ export default function AgentScreen() {
         </EnterView>
 
         {/* Escalations */}
-        {escalations.length > 0 && (
+        {pendingEscalations.length > 0 && (
           <EnterView delay={staggerDelays[3]} style={styles.escalationSection}>
             <TempoText variant="label" color={colors.ink3} style={styles.sectionLabel}>
               NEEDS YOUR DECISION
             </TempoText>
-            {escalations.map((esc) => (
-              <View
-                key={esc.id}
-                style={[
-                  styles.escalationCard,
-                  {
-                    backgroundColor: colors.surface,
-                    borderLeftColor: colors.warning,
-                  },
-                ]}
-              >
-                <TempoText variant="subheading">{esc.meeting}</TempoText>
-                <TempoText variant="data" color={colors.ink3} style={styles.escTime}>
-                  {esc.time}
-                </TempoText>
-                <TempoText variant="caption" color={colors.ink2} style={styles.escReason}>
-                  {esc.reason}
-                </TempoText>
-                <View style={styles.escActions}>
-                  <Pressable
-                    onPress={() => resolveEscalation(esc.id, 'attend')}
-                    style={[styles.escButton, { backgroundColor: colors.accent }]}
-                    accessibilityLabel="Attend yourself"
-                    accessibilityRole="button"
-                  >
-                    <TempoText variant="caption" color="#FFFFFF">
-                      Attend yourself
-                    </TempoText>
-                  </Pressable>
-                  <Pressable
-                    onPress={() => resolveEscalation(esc.id, 'agent')}
-                    style={[styles.escButton, { backgroundColor: colors.agent }]}
-                    accessibilityLabel="Send agent"
-                    accessibilityRole="button"
-                  >
-                    <TempoText variant="caption" color="#FFFFFF">
-                      Send agent
-                    </TempoText>
-                  </Pressable>
-                  <Pressable
-                    onPress={() => resolveEscalation(esc.id, 'decline')}
-                    style={[styles.escButtonOutline, { borderColor: colors.danger }]}
-                    accessibilityLabel="Decline"
-                    accessibilityRole="button"
-                  >
-                    <TempoText variant="caption" color={colors.danger}>
-                      Decline
-                    </TempoText>
-                  </Pressable>
-                </View>
-              </View>
+            {pendingEscalations.map((esc) => (
+              <EscalationRow key={esc.id} esc={esc} onResolve={resolveEscalation} />
             ))}
           </EnterView>
         )}
 
-        {/* Activity feed */}
-        <EnterView delay={staggerDelays[4]} style={styles.feedSection}>
-          <TempoText variant="label" color={colors.ink3} style={styles.sectionLabel}>
-            RECENT ACTIVITY
+        {/* Recent sentinel actions */}
+        {sentinel.recentActions.length > 0 && (
+          <EnterView delay={staggerDelays[4]} style={styles.feedSection}>
+            <TempoText variant="label" color={colors.ink3} style={styles.sectionLabel}>
+              RECENT ACTIONS
+            </TempoText>
+            {sentinel.recentActions.map((item) => (
+              <ActionRow key={item.id} item={item} />
+            ))}
+          </EnterView>
+        )}
+
+        {/* ── CULTIVATOR ── */}
+        <View style={[styles.separator, { backgroundColor: colors.border }]} />
+
+        <EnterView delay={staggerDelays[3]}>
+          <TempoText variant="label" color={colors.accent} style={styles.sectionLabel}>
+            CULTIVATOR
           </TempoText>
-          {activityFeed.map((item) => (
-            <ActivityItem key={item.id} item={item} />
-          ))}
+          <TempoText variant="caption" color={colors.ink2}>
+            Offense {'\u00B7'} {cultivator.bookedThisWeek.length} booked this week
+          </TempoText>
         </EnterView>
+
+        {/* Pending proposals */}
+        {pendingProposals.length > 0 && (
+          <EnterView delay={staggerDelays[4]} style={styles.proposalSection}>
+            <TempoText variant="label" color={colors.ink3} style={styles.sectionLabel}>
+              PROPOSALS
+            </TempoText>
+            {pendingProposals.map((p) => (
+              <ProposalRow
+                key={p.id}
+                proposal={p}
+                onAccept={acceptProposal}
+                onDefer={deferProposal}
+                onDismiss={dismissProposal}
+              />
+            ))}
+          </EnterView>
+        )}
       </ScrollView>
     </View>
   );
@@ -252,17 +401,23 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   content: {
     paddingHorizontal: spacing.xl,
     paddingBottom: spacing['3xl'],
   },
-  subhead: {
-    marginTop: spacing.xs,
+  separator: {
+    height: StyleSheet.hairlineWidth,
+    marginVertical: spacing.xl,
   },
   statsRow: {
     flexDirection: 'row',
     gap: spacing.md,
-    marginTop: spacing.xl,
+    marginTop: spacing.base,
   },
   statTile: {
     flex: 1,
@@ -282,7 +437,18 @@ const styles = StyleSheet.create({
   escalationCard: {
     borderRadius: 12,
     padding: spacing.base,
-    borderLeftWidth: 2,
+    borderLeftWidth: 3,
+    marginBottom: spacing.md,
+  },
+  escHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  roleBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: 8,
   },
   escTime: {
     marginTop: spacing.xs,
@@ -290,8 +456,13 @@ const styles = StyleSheet.create({
   escReason: {
     marginTop: spacing.sm,
   },
+  questionList: {
+    marginTop: spacing.sm,
+    gap: spacing.xs,
+  },
   escActions: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: spacing.sm,
     marginTop: spacing.base,
   },
@@ -309,7 +480,7 @@ const styles = StyleSheet.create({
   feedSection: {
     marginTop: spacing.xl,
   },
-  activityItem: {
+  actionRow: {
     paddingVertical: spacing.base,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
@@ -318,14 +489,6 @@ const styles = StyleSheet.create({
   },
   time: {
     marginTop: spacing.xs,
-  },
-  detailBlock: {
-    marginTop: spacing.sm,
-    padding: spacing.md,
-    borderRadius: 8,
-  },
-  detailText: {
-    lineHeight: 20,
   },
   personaSection: {
     marginTop: spacing.xl,
@@ -349,5 +512,34 @@ const styles = StyleSheet.create({
   behaviorList: {
     marginTop: spacing.sm,
     gap: spacing.xs,
+  },
+  proposalSection: {
+    marginTop: spacing.base,
+  },
+  proposalCard: {
+    borderRadius: 12,
+    padding: spacing.base,
+    marginBottom: spacing.md,
+  },
+  proposalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  categoryPill: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  proposalTitle: {
+    marginTop: spacing.sm,
+  },
+  proposalReason: {
+    marginTop: spacing.xs,
+  },
+  proposalActions: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginTop: spacing.base,
   },
 });

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import type { Relationship, StandingPolicy, EnergyProfile } from './types';
 
 export interface SubGoal {
   id: string;
@@ -34,6 +35,9 @@ interface LifeModelState {
   reflections: Reflection[];
   checkins: Checkin[];
   lastCheckin: Checkin | null;
+  relationships: Relationship[];
+  standingPolicies: StandingPolicy[];
+  energyProfile: EnergyProfile;
 
   setIntention: (text: string) => void;
   commitIntention: () => void;
@@ -43,6 +47,10 @@ interface LifeModelState {
   removeDomain: (id: string) => void;
   addReflection: (reflection: Reflection) => void;
   addCheckin: (checkin: Checkin) => void;
+  addRelationship: (rel: Relationship) => void;
+  updateRelationship: (id: string, updates: Partial<Relationship>) => void;
+  addPolicy: (policy: StandingPolicy) => void;
+  setEnergyProfile: (profile: EnergyProfile) => void;
 }
 
 export const useLifeModel = create<LifeModelState>((set) => ({
@@ -50,6 +58,56 @@ export const useLifeModel = create<LifeModelState>((set) => ({
   intentionSet: false,
   checkins: [],
   lastCheckin: null,
+  relationships: [
+    {
+      id: 'rel-1',
+      name: 'David',
+      role: 'mentor',
+      targetFrequencyDays: 30,
+      lastContactDate: new Date(Date.now() - 34 * 86400000),
+      relationshipTier: 'critical',
+    },
+    {
+      id: 'rel-2',
+      name: 'Audrey',
+      role: 'partner',
+      targetFrequencyDays: 1,
+      lastContactDate: new Date(),
+      relationshipTier: 'critical',
+    },
+    {
+      id: 'rel-3',
+      name: 'Mom',
+      role: 'family',
+      targetFrequencyDays: 7,
+      lastContactDate: new Date(Date.now() - 14 * 86400000),
+      relationshipTier: 'critical',
+    },
+  ],
+  standingPolicies: [
+    {
+      id: 'pol-1',
+      organizerType: 'vendor',
+      action: 'always_decline',
+      delegationTierRequired: 1,
+      notes: 'Decline all vendor outreach',
+    },
+    {
+      id: 'pol-2',
+      organizerType: 'team',
+      action: 'async_first',
+      delegationTierRequired: 2,
+      notes: 'Prefer async for team syncs',
+    },
+  ],
+  energyProfile: {
+    peakHoursStart: 8,
+    peakHoursEnd: 12,
+    lowEnergyStart: 14,
+    lowEnergyEnd: 15,
+    contextSwitchTolerance: 'low',
+    hardStopTime: 18,
+  },
   domains: [
     {
       id: '1',
@@ -202,4 +260,23 @@ export const useLifeModel = create<LifeModelState>((set) => ({
       checkins: [checkin, ...state.checkins],
       lastCheckin: checkin,
     })),
+
+  addRelationship: (rel) =>
+    set((state) => ({
+      relationships: [...state.relationships, rel],
+    })),
+
+  updateRelationship: (id, updates) =>
+    set((state) => ({
+      relationships: state.relationships.map((r) =>
+        r.id === id ? { ...r, ...updates } : r,
+      ),
+    })),
+
+  addPolicy: (policy) =>
+    set((state) => ({
+      standingPolicies: [...state.standingPolicies, policy],
+    })),
+
+  setEnergyProfile: (profile) => set({ energyProfile: profile }),
 }));

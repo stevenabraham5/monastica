@@ -61,6 +61,12 @@ export default function TabLayout() {
           href: null,
         }}
       />
+      <Tabs.Screen
+        name="onboarding"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }

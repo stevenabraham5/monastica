@@ -11,6 +11,8 @@ import { useColors } from '../../constants/colors';
 import { spacing } from '../../constants/spacing';
 import { staggerDelays } from '../../constants/motion';
 import { useLifeModel } from '../../store/lifeModel';
+import { useAgentStore } from '../../store/agentStore';
+import { CATEGORY_LABELS } from '../../store/types';
 
 // Quick feeling words — tap to log how you feel right now
 const FEELINGS = ['rested', 'scattered', 'focused', 'drained', 'restless', 'steady', 'flat', 'energised'] as const;
@@ -22,6 +24,34 @@ function getTimeContext(): string {
   if (h < 17) return 'Afternoon';
   if (h < 21) return 'Evening';
   return 'Night';
+}
+
+function CultivatorStrip() {
+  const colors = useColors();
+  const topProposal = useAgentStore(
+    (s) => s.cultivator.pendingProposals.find((p) => p.status === 'pending') ?? null,
+  );
+
+  if (!topProposal) return null;
+
+  const label = CATEGORY_LABELS[topProposal.category] ?? topProposal.category;
+
+  return (
+    <EnterView delay={staggerDelays[2]} style={styles.cultivatorStrip}>
+      <Pressable
+        style={[styles.stripButton, { backgroundColor: colors.accentLight }]}
+        accessibilityRole="button"
+        accessibilityLabel={`Tempo found time for ${label}`}
+      >
+        <TempoText variant="caption" color={colors.accent}>
+          Tempo found time for {label.toLowerCase()}
+        </TempoText>
+        <TempoText variant="caption" color={colors.accent}>
+          {"\u203A"}
+        </TempoText>
+      </Pressable>
+    </EnterView>
+  );
 }
 
 export default function TodayScreen() {
@@ -98,6 +128,9 @@ export default function TodayScreen() {
           />
         </EnterView>
 
+        {/* Cultivator strip */}
+        <CultivatorStrip />
+
         {/* Tempo pulse — compact domain fill vessels */}
         <EnterView delay={staggerDelays[3]} style={styles.pulseSection}>
           <TempoText variant="label" color={colors.ink3} style={styles.sectionLabel}>
@@ -159,5 +192,16 @@ const styles = StyleSheet.create({
   },
   pulseRow: {
     gap: spacing.sm,
+  },
+  cultivatorStrip: {
+    marginTop: spacing.xl,
+  },
+  stripButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.base,
+    borderRadius: 12,
   },
 });
