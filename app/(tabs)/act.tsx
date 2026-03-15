@@ -168,7 +168,7 @@ function ActionCard({
   return (
     <Pressable
       onPress={handlePress}
-      style={[styles.card, { backgroundColor: colors.surface, borderLeftColor: item.tint }]}
+      style={[styles.card, { borderLeftColor: item.tint }]}
       accessibilityRole="button"
     >
       <View style={styles.cardContent}>
@@ -182,7 +182,7 @@ function ActionCard({
         <ActivityIndicator size="small" color={colors.agent} />
       )}
       {!processing && agentResponse && (
-        <View style={[styles.agentBubble, { backgroundColor: colors.ground }]}>
+        <View style={styles.agentBubble}>
           <TempoText variant="caption" color={colors.agent}>{agentResponse}</TempoText>
         </View>
       )}
@@ -386,10 +386,10 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   card: {
-    borderRadius: 8,
+    borderRadius: 12,
     padding: spacing.md,
     borderLeftWidth: 3,
-    backgroundColor: 'rgba(250, 250, 248, 0.92)',
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
   },
   cardContent: {
     flex: 1,
@@ -399,11 +399,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     borderRadius: 8,
     marginTop: spacing.xs,
+    backgroundColor: 'rgba(255, 255, 255, 0.20)',
   },
   emptyState: {
     marginTop: spacing['5xl'],
     alignItems: 'center',
-    backgroundColor: 'rgba(250, 250, 248, 0.85)',
+    backgroundColor: 'rgba(255, 255, 255, 0.20)',
     borderRadius: 16,
     padding: spacing.xl,
   },
