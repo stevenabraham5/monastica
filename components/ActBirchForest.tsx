@@ -121,6 +121,23 @@ export function ActBirchForest({ actionCount, completedToday }: ActBirchForestPr
       {/* Sky — pale winter */}
       <View style={[styles.sky, { backgroundColor: ice + '12' }]} />
 
+      {/* Sun — pale winter sun */}
+      <View style={styles.sun}>
+        <View style={[styles.sunBody, { backgroundColor: '#E8D08A', opacity: 0.40 }]} />
+        <View style={[styles.sunGlow, { backgroundColor: '#E8D08A', opacity: 0.12 }]} />
+      </View>
+
+      {/* Clouds */}
+      <View style={styles.cloud1}>
+        <View style={[styles.cloudPuff, { width: 40, height: 16, backgroundColor: '#fff', opacity: 0.38 }]} />
+        <View style={[styles.cloudPuff, { width: 26, height: 12, left: 28, top: -3, backgroundColor: '#fff', opacity: 0.30 }]} />
+        <View style={[styles.cloudPuff, { width: 20, height: 10, left: -8, top: 2, backgroundColor: '#fff', opacity: 0.25 }]} />
+      </View>
+      <View style={styles.cloud2}>
+        <View style={[styles.cloudPuff, { width: 34, height: 14, backgroundColor: '#fff', opacity: 0.35 }]} />
+        <View style={[styles.cloudPuff, { width: 22, height: 10, left: 24, top: -2, backgroundColor: '#fff', opacity: 0.28 }]} />
+      </View>
+
       {/* Distant treeline — very faint */}
       <View style={[styles.distantTrees, { backgroundColor: '#A0A8A4', opacity: 0.30 }]} />
 
@@ -200,6 +217,42 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: '50%',
+  },
+  // Sun
+  sun: {
+    position: 'absolute',
+    top: '4%',
+    right: '18%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sunBody: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+  },
+  sunGlow: {
+    position: 'absolute',
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+  },
+  // Clouds
+  cloud1: {
+    position: 'absolute',
+    top: '8%',
+    left: '10%',
+    flexDirection: 'row',
+  },
+  cloud2: {
+    position: 'absolute',
+    top: '18%',
+    left: '55%',
+    flexDirection: 'row',
+  },
+  cloudPuff: {
+    borderRadius: 20,
+    position: 'absolute',
   },
   distantTrees: {
     position: 'absolute',

@@ -120,6 +120,22 @@ export function ActTidePool({ actionCount, completedToday }: ActTidePoolProps) {
       {/* Sky — misty */}
       <View style={[styles.sky, { backgroundColor: slate + '08' }]} />
 
+      {/* Sun — hazy through mist */}
+      <View style={styles.sun}>
+        <View style={[styles.sunBody, { backgroundColor: '#E8C84A', opacity: 0.35 }]} />
+        <View style={[styles.sunGlow, { backgroundColor: '#E8C84A', opacity: 0.12 }]} />
+      </View>
+
+      {/* Clouds */}
+      <View style={styles.cloud1}>
+        <View style={[styles.cloudPuff, { width: 38, height: 16, backgroundColor: '#fff', opacity: 0.40 }]} />
+        <View style={[styles.cloudPuff, { width: 26, height: 12, left: 28, top: -3, backgroundColor: '#fff', opacity: 0.32 }]} />
+      </View>
+      <View style={styles.cloud2}>
+        <View style={[styles.cloudPuff, { width: 32, height: 14, backgroundColor: '#fff', opacity: 0.35 }]} />
+        <View style={[styles.cloudPuff, { width: 20, height: 10, left: 22, top: -2, backgroundColor: '#fff', opacity: 0.28 }]} />
+      </View>
+
       {/* Fog banks */}
       <Animated.View style={[styles.fog1, { backgroundColor: '#D0D8DC', opacity: 0.35 }, fogStyle]} />
       <Animated.View style={[styles.fog2, { backgroundColor: '#C8D0D4', opacity: 0.28 }, fogStyle]} />
@@ -189,6 +205,42 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: '48%',
+  },
+  // Sun
+  sun: {
+    position: 'absolute',
+    top: '5%',
+    left: '15%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sunBody: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+  },
+  sunGlow: {
+    position: 'absolute',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+  },
+  // Clouds
+  cloud1: {
+    position: 'absolute',
+    top: '8%',
+    right: '25%',
+    flexDirection: 'row',
+  },
+  cloud2: {
+    position: 'absolute',
+    top: '16%',
+    left: '45%',
+    flexDirection: 'row',
+  },
+  cloudPuff: {
+    borderRadius: 20,
+    position: 'absolute',
   },
   fog1: {
     position: 'absolute',
