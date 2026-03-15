@@ -246,46 +246,50 @@ export default function NowScreen() {
           </View>
         </EnterView>
 
-        {/* Contextual prompt */}
-        <EnterView delay={staggerDelays[2]} style={styles.section}>
-          <TempoText variant="label" color={colors.ink3} style={styles.sectionLabel}>
-            {(selectedFeeling ? FEELING_PROMPTS[selectedFeeling] : DEFAULT_PROMPT).label}
-          </TempoText>
-          <TempoInput
-            variant="body"
-            placeholder={(selectedFeeling ? FEELING_PROMPTS[selectedFeeling] : DEFAULT_PROMPT).placeholder}
-            multiline
-            value={intention}
-            onChangeText={setIntention}
-            onSubmit={(text) => setIntention(text)}
-          />
-        </EnterView>
+        {/* Contextual prompt — only after feeling selected */}
+        {selectedFeeling && (
+          <EnterView delay={staggerDelays[2]} style={styles.section}>
+            <TempoText variant="label" color={colors.ink3} style={styles.sectionLabel}>
+              {FEELING_PROMPTS[selectedFeeling].label}
+            </TempoText>
+            <TempoInput
+              variant="body"
+              placeholder={FEELING_PROMPTS[selectedFeeling].placeholder}
+              multiline
+              value={intention}
+              onChangeText={setIntention}
+              onSubmit={(text) => setIntention(text)}
+            />
+          </EnterView>
+        )}
 
-        {/* Reflection — what just happened */}
-        <EnterView delay={staggerDelays[3]} style={styles.section}>
-          <TempoText variant="label" color={colors.ink3} style={styles.sectionLabel}>REFLECT</TempoText>
-          <TempoInput
-            variant="body"
-            placeholder="What just happened? Say it plainly..."
-            multiline
-            numberOfLines={3}
-            value={reflectionText}
-            onChangeText={setReflectionText}
-            onSubmit={submitReflection}
-          />
-          {reflections.length > 0 && (
-            <View style={styles.recentReflections}>
-              {reflections.slice(0, 3).map((entry) => (
-                <View key={entry.id} style={[styles.reflectionEntry, { borderBottomColor: colors.border }]}>
-                  <TempoText variant="label" color={colors.ink3}>{entry.date}</TempoText>
-                  <TempoText variant="caption" color={colors.ink2} numberOfLines={2} style={{ marginTop: spacing.xs }}>
-                    {entry.text}
-                  </TempoText>
-                </View>
-              ))}
-            </View>
-          )}
-        </EnterView>
+        {/* Reflection — appears after feeling selected */}
+        {selectedFeeling && (
+          <EnterView delay={staggerDelays[3]} style={styles.section}>
+            <TempoText variant="label" color={colors.ink3} style={styles.sectionLabel}>REFLECT</TempoText>
+            <TempoInput
+              variant="body"
+              placeholder="What just happened? Say it plainly..."
+              multiline
+              numberOfLines={3}
+              value={reflectionText}
+              onChangeText={setReflectionText}
+              onSubmit={submitReflection}
+            />
+            {reflections.length > 0 && (
+              <View style={styles.recentReflections}>
+                {reflections.slice(0, 3).map((entry) => (
+                  <View key={entry.id} style={[styles.reflectionEntry, { borderBottomColor: colors.border }]}>
+                    <TempoText variant="label" color={colors.ink3}>{entry.date}</TempoText>
+                    <TempoText variant="caption" color={colors.ink2} numberOfLines={2} style={{ marginTop: spacing.xs }}>
+                      {entry.text}
+                    </TempoText>
+                  </View>
+                ))}
+              </View>
+            )}
+          </EnterView>
+        )}
 
         {/* Sentinel escalations — needs your decision */}
         {pendingEscalations.length > 0 && (
