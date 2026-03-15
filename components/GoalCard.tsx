@@ -93,34 +93,29 @@ export function GoalCard({
       <TempoText variant="caption" color={colors.ink2} style={styles.label} numberOfLines={2}>
         {domain}
       </TempoText>
-
-      {/* CTA hint */}
-      {!hasRating && (
-        <TempoText variant="caption" color={visual.tint} style={styles.cta}>set</TempoText>
-      )}
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    width: 80,
+    width: 68,
     alignItems: 'center',
-    borderRadius: 12,
-    paddingVertical: spacing.base,
+    borderRadius: 10,
+    paddingVertical: spacing.sm,
     paddingHorizontal: spacing.xs,
     borderWidth: StyleSheet.hairlineWidth,
-    gap: spacing.sm,
+    gap: spacing.xs,
   },
   symbol: {
-    fontSize: 22,
+    fontSize: 18,
     textAlign: 'center',
-    lineHeight: 28,
+    lineHeight: 22,
   },
   vessel: {
-    width: 6,
-    height: 56,
-    borderRadius: 3,
+    width: 5,
+    height: 36,
+    borderRadius: 2.5,
     overflow: 'hidden',
     justifyContent: 'flex-end',
   },
@@ -130,12 +125,7 @@ const styles = StyleSheet.create({
   },
   label: {
     textAlign: 'center',
-    fontSize: 10,
-    lineHeight: 13,
-  },
-  cta: {
     fontSize: 9,
-    letterSpacing: 0.5,
-    marginTop: 2,
+    lineHeight: 11,
   },
 });
