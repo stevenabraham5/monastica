@@ -52,14 +52,14 @@ function DomainMiniCard({ branch }: { branch: DomainBranch }) {
   return (
     <View style={[styles.card, { backgroundColor: branch.tint + '0C', borderColor: branch.tint + '25' }]}>
       <View style={styles.cardTop}>
-        <TempoText variant="body" style={{ fontSize: 20, color: branch.tint }}>
+        <TempoText variant="body" style={{ fontSize: 24, color: branch.tint }}>
           {symbol}
         </TempoText>
-        <TempoText variant="data" color={branch.tint} style={{ fontSize: 13 }}>
+        <TempoText variant="data" color={branch.tint} style={{ fontSize: 15 }}>
           {pct}%
         </TempoText>
       </View>
-      <TempoText variant="caption" color={colors.ink2} style={{ fontSize: 11, marginTop: 2 }} numberOfLines={1}>
+      <TempoText variant="body" color={colors.ink2} style={{ fontSize: 13, marginTop: 2 }} numberOfLines={1}>
         {short}
       </TempoText>
       <View style={[styles.miniTrack, { backgroundColor: branch.tint + '18' }]}>

@@ -134,8 +134,8 @@ export function GrowRadar({ score, branches }: GrowRadarProps) {
                     },
                   ]}
                 >
-                  <TempoText variant="body" style={{ fontSize: 16, color: b.tint }}>{symbol}</TempoText>
-                  <TempoText variant="caption" color={colors.ink2} style={{ fontSize: 10, lineHeight: 12 }}>
+                  <TempoText variant="body" style={{ fontSize: 22, color: b.tint }}>{symbol}</TempoText>
+                  <TempoText variant="caption" color={colors.ink2} style={{ fontSize: 12, lineHeight: 14 }}>
                     {short}
                   </TempoText>
                 </View>
@@ -173,19 +173,19 @@ const styles = StyleSheet.create({
   },
   levelDot: {
     position: 'absolute',
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    opacity: 0.75,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    opacity: 0.80,
   },
   labelWrap: {
     position: 'absolute',
-    width: 48,
+    width: 56,
     alignItems: 'center',
   },
   centerScore: {
     position: 'absolute',
-    width: 36,
+    width: 42,
     alignItems: 'center',
   },
 });

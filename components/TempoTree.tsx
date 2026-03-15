@@ -80,12 +80,12 @@ function DomainRow({ branch, index }: { branch: DomainBranch; index: number }) {
     <View style={styles.row}>
       {/* Label column */}
       <View style={styles.labelCol}>
-        <TempoText variant="body" style={{ fontSize: 18, color: branch.tint, lineHeight: 22 }}>
+        <TempoText variant="body" style={{ fontSize: 26, color: branch.tint, lineHeight: 30 }}>
           {symbol}
         </TempoText>
         <TempoText
-          variant="caption"
-          color={colors.ink2}
+          variant="body"
+          color={colors.ink}
           style={styles.domainName}
           numberOfLines={1}
         >
@@ -146,24 +146,24 @@ const styles = StyleSheet.create({
     paddingRight: spacing.xs,
   },
   scoreText: {
-    fontSize: 13,
+    fontSize: 15,
     letterSpacing: 1,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 32,
-    marginBottom: 4,
+    height: 42,
+    marginBottom: 6,
   },
   labelCol: {
-    width: 90,
+    width: 120,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 6,
   },
   domainName: {
-    fontSize: 12,
-    lineHeight: 14,
+    fontSize: 14,
+    lineHeight: 18,
     flex: 1,
   },
   barCol: {
@@ -171,20 +171,20 @@ const styles = StyleSheet.create({
     paddingRight: spacing.sm,
   },
   barTrack: {
-    height: 8,
-    borderRadius: 4,
+    height: 12,
+    borderRadius: 6,
     overflow: 'hidden',
   },
   barFill: {
     height: '100%',
-    borderRadius: 4,
+    borderRadius: 6,
   },
   pctCol: {
-    width: 28,
+    width: 36,
     alignItems: 'flex-end',
   },
   pctText: {
-    fontSize: 12,
+    fontSize: 15,
     letterSpacing: 0.5,
   },
 });
