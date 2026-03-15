@@ -7,7 +7,7 @@ import { TempoText } from '../../components/TempoText';
 import { TempoInput } from '../../components/TempoInput';
 import { GoalCard } from '../../components/GoalCard';
 import { DomainSheet } from '../../components/DomainSheet';
-import { ReflectOcean } from '../../components/ReflectOcean';
+import { ReflectSceneCarousel } from '../../components/ReflectSceneCarousel';
 import { EnterView } from '../../components/EnterView';
 import { useColors } from '../../constants/colors';
 import { spacing } from '../../constants/spacing';
@@ -232,7 +232,7 @@ export default function NowScreen() {
 
         {/* Ocean hero — ripples per check-in */}
         <EnterView delay={staggerDelays[0]} style={styles.section}>
-          <ReflectOcean checkinsToday={checkinsToday} latestFeeling={selectedFeeling} />
+          <ReflectSceneCarousel checkinsToday={checkinsToday} latestFeeling={selectedFeeling} />
         </EnterView>
 
         {/* Tempo index */}

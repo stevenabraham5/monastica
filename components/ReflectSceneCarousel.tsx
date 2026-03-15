@@ -1,23 +1,23 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, ScrollView, StyleSheet, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
-import { ActField } from './ActField';
-import { ActTidePool } from './ActTidePool';
-import { ActBirchForest } from './ActBirchForest';
+import { ReflectOcean } from './ReflectOcean';
+import { ReflectNightSky } from './ReflectNightSky';
+import { ReflectHarbor } from './ReflectHarbor';
 import { useColors } from '../constants/colors';
 
 /*
-  ActSceneCarousel — swipeable wrapper around Act tab hero visuals.
-  Same data drives multiple scene styles; user swipes horizontally.
+  ReflectSceneCarousel — 3 swipeable scenes for Reflect tab hero.
+  Ocean, Night Sky, Harbor — all use checkinsToday + latestFeeling.
 */
 
-interface ActSceneCarouselProps {
-  actionCount: number;
-  completedToday: number;
+interface ReflectSceneCarouselProps {
+  checkinsToday: number;
+  latestFeeling: string | null;
 }
 
-const SCENES = ['field', 'tidepool', 'birch'] as const;
+const SCENES = ['ocean', 'nightsky', 'harbor'] as const;
 
-export function ActSceneCarousel({ actionCount, completedToday }: ActSceneCarouselProps) {
+export function ReflectSceneCarousel({ checkinsToday, latestFeeling }: ReflectSceneCarouselProps) {
   const colors = useColors();
   const [page, setPage] = useState(0);
   const [width, setWidth] = useState(0);
@@ -47,18 +47,17 @@ export function ActSceneCarousel({ actionCount, completedToday }: ActSceneCarous
           style={styles.scroll}
         >
           <View style={{ width }}>
-            <ActField actionCount={actionCount} completedToday={completedToday} />
+            <ReflectOcean checkinsToday={checkinsToday} latestFeeling={latestFeeling} />
           </View>
           <View style={{ width }}>
-            <ActTidePool actionCount={actionCount} completedToday={completedToday} />
+            <ReflectNightSky checkinsToday={checkinsToday} latestFeeling={latestFeeling} />
           </View>
           <View style={{ width }}>
-            <ActBirchForest actionCount={actionCount} completedToday={completedToday} />
+            <ReflectHarbor checkinsToday={checkinsToday} latestFeeling={latestFeeling} />
           </View>
         </ScrollView>
       )}
 
-      {/* Page dots */}
       <View style={styles.dots}>
         {SCENES.map((_, i) => (
           <View

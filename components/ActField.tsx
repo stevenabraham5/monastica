@@ -93,61 +93,67 @@ export function ActField({ actionCount, completedToday }: ActFieldProps) {
   const bladeConfigs = useBladeConfigs(bladeCount);
 
   return (
-    <View style={[styles.container, { backgroundColor: fieldGreen + '08' }]}>
+    <View style={[styles.container, { backgroundColor: fieldGreen + '0C' }]}>
       {/* Sky */}
-      <View style={[styles.sky, { backgroundColor: fieldGreen + '04' }]} />
+      <View style={[styles.sky, { backgroundColor: fieldGreen + '06' }]} />
+
+      {/* Sun */}
+      <View style={styles.sun}>
+        <View style={[styles.sunBody, { backgroundColor: '#E8C84A', opacity: 0.50 }]} />
+        <View style={[styles.sunGlow, { backgroundColor: '#E8C84A', opacity: 0.15 }]} />
+      </View>
 
       {/* Clouds */}
       <View style={styles.cloud1}>
-        <View style={[styles.cloudPuff, { width: 28, height: 12, backgroundColor: '#fff', opacity: 0.25 }]} />
-        <View style={[styles.cloudPuff, { width: 18, height: 10, left: 20, top: -3, backgroundColor: '#fff', opacity: 0.20 }]} />
-        <View style={[styles.cloudPuff, { width: 14, height: 8, left: -6, top: 1, backgroundColor: '#fff', opacity: 0.18 }]} />
+        <View style={[styles.cloudPuff, { width: 42, height: 18, backgroundColor: '#fff', opacity: 0.50 }]} />
+        <View style={[styles.cloudPuff, { width: 28, height: 14, left: 30, top: -4, backgroundColor: '#fff', opacity: 0.40 }]} />
+        <View style={[styles.cloudPuff, { width: 22, height: 12, left: -10, top: 2, backgroundColor: '#fff', opacity: 0.35 }]} />
       </View>
       <View style={styles.cloud2}>
-        <View style={[styles.cloudPuff, { width: 22, height: 10, backgroundColor: '#fff', opacity: 0.22 }]} />
-        <View style={[styles.cloudPuff, { width: 16, height: 8, left: 16, top: -2, backgroundColor: '#fff', opacity: 0.18 }]} />
+        <View style={[styles.cloudPuff, { width: 36, height: 16, backgroundColor: '#fff', opacity: 0.45 }]} />
+        <View style={[styles.cloudPuff, { width: 24, height: 12, left: 26, top: -3, backgroundColor: '#fff', opacity: 0.35 }]} />
       </View>
       <View style={styles.cloud3}>
-        <View style={[styles.cloudPuff, { width: 18, height: 8, backgroundColor: '#fff', opacity: 0.18 }]} />
-        <View style={[styles.cloudPuff, { width: 12, height: 7, left: 12, top: -1, backgroundColor: '#fff', opacity: 0.15 }]} />
+        <View style={[styles.cloudPuff, { width: 30, height: 14, backgroundColor: '#fff', opacity: 0.40 }]} />
+        <View style={[styles.cloudPuff, { width: 20, height: 10, left: 20, top: -2, backgroundColor: '#fff', opacity: 0.30 }]} />
       </View>
 
       {/* Distant hills */}
-      <View style={[styles.distantHill1, { backgroundColor: fieldGreen + '18' }]} />
-      <View style={[styles.distantHill2, { backgroundColor: fieldGreen + '12' }]} />
+      <View style={[styles.distantHill1, { backgroundColor: fieldGreen + '30' }]} />
+      <View style={[styles.distantHill2, { backgroundColor: fieldGreen + '25' }]} />
 
       {/* Horizon line */}
-      <View style={[styles.horizonLine, { backgroundColor: fieldGreen + '30' }]} />
+      <View style={[styles.horizonLine, { backgroundColor: fieldGreen + '50' }]} />
 
       {/* ── Distance elements ── */}
 
       {/* Barn — simple geometric shapes */}
       <View style={styles.barnGroup}>
         {/* Barn body */}
-        <View style={[styles.barnBody, { backgroundColor: barnColor, opacity: 0.35 }]} />
+        <View style={[styles.barnBody, { backgroundColor: barnColor, opacity: 0.55 }]} />
         {/* Barn roof — triangle approximated */}
         <View style={[styles.barnRoof, {
           borderBottomColor: barnColor,
           borderLeftColor: 'transparent',
           borderRightColor: 'transparent',
-          opacity: 0.35,
+          opacity: 0.55,
         }]} />
         {/* Barn door */}
-        <View style={[styles.barnDoor, { backgroundColor: fieldGreen + '20' }]} />
+        <View style={[styles.barnDoor, { backgroundColor: fieldGreen + '40' }]} />
         {/* Silo next to barn */}
-        <View style={[styles.silo, { backgroundColor: barnColor, opacity: 0.30 }]} />
-        <View style={[styles.siloTop, { backgroundColor: barnColor, opacity: 0.30, borderRadius: 4 }]} />
+        <View style={[styles.silo, { backgroundColor: barnColor, opacity: 0.50 }]} />
+        <View style={[styles.siloTop, { backgroundColor: barnColor, opacity: 0.50, borderRadius: 4 }]} />
       </View>
 
       {/* Fence posts — thin verticals along the horizon */}
       <View style={styles.fenceRow}>
         {Array.from({ length: 7 }).map((_, i) => (
           <View key={i} style={styles.fenceUnit}>
-            <View style={[styles.fencePost, { backgroundColor: barnColor, opacity: 0.30 }]} />
+            <View style={[styles.fencePost, { backgroundColor: barnColor, opacity: 0.50 }]} />
             {i < 6 && (
               <>
-                <View style={[styles.fenceRail, styles.fenceRailTop, { backgroundColor: barnColor, opacity: 0.22 }]} />
-                <View style={[styles.fenceRail, styles.fenceRailBot, { backgroundColor: barnColor, opacity: 0.22 }]} />
+                <View style={[styles.fenceRail, styles.fenceRailTop, { backgroundColor: barnColor, opacity: 0.40 }]} />
+                <View style={[styles.fenceRail, styles.fenceRailBot, { backgroundColor: barnColor, opacity: 0.40 }]} />
               </>
             )}
           </View>
@@ -155,26 +161,26 @@ export function ActField({ actionCount, completedToday }: ActFieldProps) {
       </View>
 
       {/* Ground */}
-      <View style={[styles.ground, { backgroundColor: fieldGreen + '10' }]} />
+      <View style={[styles.ground, { backgroundColor: fieldGreen + '1A' }]} />
 
       {/* ── Small animals in foreground ── */}
       {/* Bird on fence */}
       <View style={styles.bird1}>
-        <View style={[styles.birdBody, { backgroundColor: barnColor, opacity: 0.35 }]} />
-        <View style={[styles.birdHead, { backgroundColor: barnColor, opacity: 0.35 }]} />
-        <View style={[styles.birdBeak, { backgroundColor: '#C49A6C', opacity: 0.40 }]} />
+        <View style={[styles.birdBody, { backgroundColor: barnColor, opacity: 0.55 }]} />
+        <View style={[styles.birdHead, { backgroundColor: barnColor, opacity: 0.55 }]} />
+        <View style={[styles.birdBeak, { backgroundColor: '#C49A6C', opacity: 0.60 }]} />
       </View>
       {/* Rabbit in grass — right side */}
       <View style={styles.rabbit}>
-        <View style={[styles.rabbitBody, { backgroundColor: barnColor, opacity: 0.28 }]} />
-        <View style={[styles.rabbitHead, { backgroundColor: barnColor, opacity: 0.28 }]} />
-        <View style={[styles.rabbitEar, styles.rabbitEarL, { backgroundColor: barnColor, opacity: 0.28 }]} />
-        <View style={[styles.rabbitEar, styles.rabbitEarR, { backgroundColor: barnColor, opacity: 0.28 }]} />
+        <View style={[styles.rabbitBody, { backgroundColor: barnColor, opacity: 0.50 }]} />
+        <View style={[styles.rabbitHead, { backgroundColor: barnColor, opacity: 0.50 }]} />
+        <View style={[styles.rabbitEar, styles.rabbitEarL, { backgroundColor: barnColor, opacity: 0.50 }]} />
+        <View style={[styles.rabbitEar, styles.rabbitEarR, { backgroundColor: barnColor, opacity: 0.50 }]} />
       </View>
       {/* Second bird — flying in sky */}
       <View style={styles.bird2}>
-        <View style={[styles.birdWingL, { backgroundColor: barnColor, opacity: 0.20 }]} />
-        <View style={[styles.birdWingR, { backgroundColor: barnColor, opacity: 0.20 }]} />
+        <View style={[styles.birdWingL, { backgroundColor: barnColor, opacity: 0.45 }]} />
+        <View style={[styles.birdWingR, { backgroundColor: barnColor, opacity: 0.45 }]} />
       </View>
 
       {/* Grass blades — many, swaying */}
@@ -199,7 +205,7 @@ const HORIZON = '58%';
 
 const styles = StyleSheet.create({
   container: {
-    height: 240,
+    height: 280,
     overflow: 'hidden',
     position: 'relative',
     borderRadius: 16,
@@ -212,23 +218,43 @@ const styles = StyleSheet.create({
     height: HORIZON,
   },
 
+  // Sun
+  sun: {
+    position: 'absolute',
+    top: '6%',
+    right: '12%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sunBody: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+  },
+  sunGlow: {
+    position: 'absolute',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+  },
+
   // Clouds
   cloud1: {
     position: 'absolute',
-    top: '12%',
-    left: '15%',
+    top: '10%',
+    left: '12%',
     flexDirection: 'row',
   },
   cloud2: {
     position: 'absolute',
-    top: '8%',
-    right: '20%',
+    top: '6%',
+    right: '30%',
     flexDirection: 'row',
   },
   cloud3: {
     position: 'absolute',
-    top: '22%',
-    left: '55%',
+    top: '20%',
+    left: '50%',
     flexDirection: 'row',
   },
   cloudPuff: {
@@ -271,43 +297,43 @@ const styles = StyleSheet.create({
     right: '18%',
   },
   barnBody: {
-    width: 22,
-    height: 16,
+    width: 32,
+    height: 22,
     borderRadius: 1,
   },
   barnRoof: {
     position: 'absolute',
-    top: -8,
-    left: -3,
+    top: -12,
+    left: -4,
     width: 0,
     height: 0,
-    borderLeftWidth: 14,
-    borderRightWidth: 14,
-    borderBottomWidth: 8,
+    borderLeftWidth: 20,
+    borderRightWidth: 20,
+    borderBottomWidth: 12,
   },
   barnDoor: {
     position: 'absolute',
     bottom: 0,
-    left: 8,
-    width: 6,
-    height: 8,
-    borderTopLeftRadius: 3,
-    borderTopRightRadius: 3,
+    left: 11,
+    width: 9,
+    height: 12,
+    borderTopLeftRadius: 4,
+    borderTopRightRadius: 4,
   },
   silo: {
     position: 'absolute',
-    left: 24,
+    left: 35,
     bottom: 0,
-    width: 8,
-    height: 20,
+    width: 12,
+    height: 28,
     borderRadius: 1,
   },
   siloTop: {
     position: 'absolute',
-    left: 23,
-    top: -6,
-    width: 10,
-    height: 6,
+    left: 33,
+    top: -8,
+    width: 16,
+    height: 8,
   },
 
   // Fence
@@ -325,21 +351,21 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   fencePost: {
-    width: 1.5,
-    height: 12,
-    borderRadius: 0.5,
+    width: 2.5,
+    height: 18,
+    borderRadius: 1,
   },
   fenceRail: {
     position: 'absolute',
-    left: 1.5,
+    left: 2.5,
     right: 0,
-    height: 1,
+    height: 1.5,
   },
   fenceRailTop: {
-    top: 2,
+    top: 3,
   },
   fenceRailBot: {
-    top: 7,
+    top: 10,
   },
 
   ground: {
@@ -352,7 +378,7 @@ const styles = StyleSheet.create({
   blade: {
     position: 'absolute',
     bottom: '42%',
-    width: 2,
+    width: 3,
     borderRadius: 1,
     backgroundColor: '#4A8C5C',
     transformOrigin: 'bottom',
@@ -383,25 +409,25 @@ const styles = StyleSheet.create({
     left: '18%',
   },
   birdBody: {
-    width: 8,
-    height: 5,
-    borderRadius: 3,
+    width: 12,
+    height: 8,
+    borderRadius: 4,
   },
   birdHead: {
     position: 'absolute',
-    top: -3,
-    right: -2,
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
+    top: -4,
+    right: -3,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
   },
   birdBeak: {
     position: 'absolute',
-    top: -2,
-    right: -5,
-    width: 4,
-    height: 2,
-    borderRadius: 1,
+    top: -3,
+    right: -7,
+    width: 6,
+    height: 3,
+    borderRadius: 1.5,
   },
 
   // Rabbit
@@ -411,23 +437,23 @@ const styles = StyleSheet.create({
     right: '25%',
   },
   rabbitBody: {
-    width: 10,
-    height: 7,
-    borderRadius: 4,
+    width: 15,
+    height: 10,
+    borderRadius: 5,
   },
   rabbitHead: {
     position: 'absolute',
-    top: -2,
-    right: -4,
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    top: -3,
+    right: -5,
+    width: 9,
+    height: 9,
+    borderRadius: 4.5,
   },
   rabbitEar: {
     position: 'absolute',
-    width: 2,
-    height: 6,
-    borderRadius: 1,
+    width: 3,
+    height: 9,
+    borderRadius: 1.5,
   },
   rabbitEarL: {
     top: -7,
@@ -447,17 +473,17 @@ const styles = StyleSheet.create({
     right: '30%',
   },
   birdWingL: {
-    width: 8,
-    height: 2,
-    borderRadius: 1,
+    width: 14,
+    height: 3,
+    borderRadius: 1.5,
     transform: [{ rotate: '-25deg' }],
   },
   birdWingR: {
-    width: 8,
-    height: 2,
-    borderRadius: 1,
+    width: 14,
+    height: 3,
+    borderRadius: 1.5,
     marginTop: -1,
-    marginLeft: 2,
+    marginLeft: 3,
     transform: [{ rotate: '25deg' }],
   },
 });

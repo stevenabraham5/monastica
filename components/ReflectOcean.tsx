@@ -88,7 +88,7 @@ function FloatingIcon({ symbol, tint, x, yPos, delay }: {
 
   return (
     <Animated.View style={[styles.floatingIcon, { left: x as any, top: yPos as any }, style]}>
-      <TempoText variant="body" style={{ fontSize: 22, color: tint }}>{symbol}</TempoText>
+      <TempoText variant="body" style={{ fontSize: 26, color: tint }}>{symbol}</TempoText>
     </Animated.View>
   );
 }
@@ -174,25 +174,25 @@ export function ReflectOcean({ checkinsToday, latestFeeling }: ReflectOceanProps
       {/* ── Landforms ── */}
 
       {/* Main island — right side, with cliff face */}
-      <View style={[styles.landmass, { backgroundColor: colors.ink3, opacity: 0.25 }]}>
-        <View style={[styles.landPeak, { backgroundColor: colors.ink3, opacity: 0.25 }]} />
+      <View style={[styles.landmass, { backgroundColor: colors.ink3, opacity: 0.45 }]}>
+        <View style={[styles.landPeak, { backgroundColor: colors.ink3, opacity: 0.45 }]} />
       </View>
       {/* Cliff face on main island — steep left edge */}
-      <View style={[styles.cliffFace, { backgroundColor: colors.ink3, opacity: 0.18 }]} />
+      <View style={[styles.cliffFace, { backgroundColor: colors.ink3, opacity: 0.38 }]} />
 
       {/* Small island — far left, low */}
-      <View style={[styles.islandSmallLeft, { backgroundColor: colors.ink3, opacity: 0.18 }]} />
+      <View style={[styles.islandSmallLeft, { backgroundColor: colors.ink3, opacity: 0.35 }]} />
 
       {/* Distant island — center-left, on horizon */}
-      <View style={[styles.islandDistant, { backgroundColor: colors.ink3, opacity: 0.12 }]} />
+      <View style={[styles.islandDistant, { backgroundColor: colors.ink3, opacity: 0.25 }]} />
 
       {/* Rocky outcrop — far right, partially off-screen */}
-      <View style={[styles.rockRight, { backgroundColor: colors.ink3, opacity: 0.22 }]} />
-      <View style={[styles.rockRightPeak, { backgroundColor: colors.ink3, opacity: 0.22 }]} />
+      <View style={[styles.rockRight, { backgroundColor: colors.ink3, opacity: 0.42 }]} />
+      <View style={[styles.rockRightPeak, { backgroundColor: colors.ink3, opacity: 0.42 }]} />
 
       {/* Cliff promontory — left foreground */}
-      <View style={[styles.cliffLeft, { backgroundColor: colors.ink3, opacity: 0.15 }]} />
-      <View style={[styles.cliffLeftTop, { backgroundColor: colors.ink3, opacity: 0.15 }]} />
+      <View style={[styles.cliffLeft, { backgroundColor: colors.ink3, opacity: 0.30 }]} />
+      <View style={[styles.cliffLeftTop, { backgroundColor: colors.ink3, opacity: 0.30 }]} />
 
       {/* Ship — bobbing left of center */}
       <BobbingShip waterColor={waterColor} />
@@ -221,7 +221,7 @@ export function ReflectOcean({ checkinsToday, latestFeeling }: ReflectOceanProps
 
 const styles = StyleSheet.create({
   container: {
-    height: 220,
+    height: 280,
     overflow: 'hidden',
     position: 'relative',
     borderRadius: 16,

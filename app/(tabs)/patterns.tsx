@@ -11,7 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { TempoText } from '../../components/TempoText';
 import { TempoInput } from '../../components/TempoInput';
-import { TempoTree } from '../../components/TempoTree';
+import { GrowSceneCarousel } from '../../components/GrowSceneCarousel';
 import { EnterView } from '../../components/EnterView';
 import { useColors } from '../../constants/colors';
 import { spacing } from '../../constants/spacing';
@@ -248,7 +248,7 @@ export default function PatternsScreen() {
 
         {/* Tree hero — branches are domains */}
         <EnterView delay={staggerDelays[0]} style={{ marginTop: spacing.xl }}>
-          <TempoTree
+          <GrowSceneCarousel
             score={Math.round(
               domains.reduce((sum, d) => {
                 const level = d.subjectiveLevel ?? (d.targetHours > 0 ? Math.min(d.actualHours / d.targetHours, 1) : 0.5);
