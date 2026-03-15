@@ -13,14 +13,16 @@ import { useColors } from '../constants/colors';
 interface ActSceneCarouselProps {
   actionCount: number;
   completedToday: number;
+  fullScreen?: boolean;
 }
 
 const SCENES = ['field', 'tidepool', 'birch'] as const;
 
-export function ActSceneCarousel({ actionCount, completedToday }: ActSceneCarouselProps) {
+export function ActSceneCarousel({ actionCount, completedToday, fullScreen }: ActSceneCarouselProps) {
   const colors = useColors();
   const [page, setPage] = useState(0);
   const [width, setWidth] = useState(0);
+  const [height, setHeight] = useState(0);
 
   const handleScroll = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -34,8 +36,11 @@ export function ActSceneCarousel({ actionCount, completedToday }: ActSceneCarous
 
   return (
     <View
-      style={styles.wrapper}
-      onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
+      style={[styles.wrapper, fullScreen && styles.wrapperFull]}
+      onLayout={(e) => {
+        setWidth(e.nativeEvent.layout.width);
+        setHeight(e.nativeEvent.layout.height);
+      }}
     >
       {width > 0 && (
         <ScrollView
@@ -46,20 +51,20 @@ export function ActSceneCarousel({ actionCount, completedToday }: ActSceneCarous
           decelerationRate="fast"
           style={styles.scroll}
         >
-          <View style={{ width }}>
-            <ActField actionCount={actionCount} completedToday={completedToday} />
+          <View style={{ width, height: fullScreen ? height : undefined }}>
+            <ActField actionCount={actionCount} completedToday={completedToday} fullScreen={fullScreen} />
           </View>
-          <View style={{ width }}>
-            <ActTidePool actionCount={actionCount} completedToday={completedToday} />
+          <View style={{ width, height: fullScreen ? height : undefined }}>
+            <ActTidePool actionCount={actionCount} completedToday={completedToday} fullScreen={fullScreen} />
           </View>
-          <View style={{ width }}>
-            <ActBirchForest actionCount={actionCount} completedToday={completedToday} />
+          <View style={{ width, height: fullScreen ? height : undefined }}>
+            <ActBirchForest actionCount={actionCount} completedToday={completedToday} fullScreen={fullScreen} />
           </View>
         </ScrollView>
       )}
 
       {/* Page dots */}
-      <View style={styles.dots}>
+      <View style={[styles.dots, fullScreen && styles.dotsAbsolute]}>
         {SCENES.map((_, i) => (
           <View
             key={i}
@@ -80,6 +85,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderRadius: 16,
   },
+  wrapperFull: {
+    flex: 1,
+    borderRadius: 0,
+  },
   scroll: {
     flexGrow: 0,
   },
@@ -88,6 +97,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
     paddingVertical: 8,
+  },
+  dotsAbsolute: {
+    position: 'absolute',
+    bottom: 12,
+    left: 0,
+    right: 0,
   },
   dot: {
     width: 6,

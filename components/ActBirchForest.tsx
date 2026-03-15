@@ -21,6 +21,7 @@ import { useColors } from '../constants/colors';
 interface ActBirchForestProps {
   actionCount: number;
   completedToday: number;
+  fullScreen?: boolean;
 }
 
 function useTrunkConfigs(count: number) {
@@ -109,7 +110,7 @@ function BirchTrunk({ config, index }: {
   );
 }
 
-export function ActBirchForest({ actionCount, completedToday }: ActBirchForestProps) {
+export function ActBirchForest({ actionCount, completedToday, fullScreen }: ActBirchForestProps) {
   const colors = useColors();
   const snow = '#E8E4E0';
   const ice = '#C8D4DC';
@@ -117,7 +118,7 @@ export function ActBirchForest({ actionCount, completedToday }: ActBirchForestPr
   const trunkConfigs = useTrunkConfigs(Math.max(actionCount + 8, 14));
 
   return (
-    <View style={[styles.container, { backgroundColor: snow + '18' }]}>
+    <View style={[styles.container, fullScreen && styles.containerFull, { backgroundColor: snow + '18' }]}>
       {/* Sky — pale winter */}
       <View style={[styles.sky, { backgroundColor: ice + '12' }]} />
 
@@ -210,6 +211,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
     borderRadius: 16,
+  },
+  containerFull: {
+    height: '100%',
+    borderRadius: 0,
   },
   sky: {
     position: 'absolute',

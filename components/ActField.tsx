@@ -24,6 +24,7 @@ import { spacing } from '../constants/spacing';
 interface ActFieldProps {
   actionCount: number;
   completedToday: number;
+  fullScreen?: boolean;
 }
 
 // Pre-generate stable blade configs so they don't change on re-render
@@ -83,7 +84,7 @@ function GrassBlade({ config, index }: {
   );
 }
 
-export function ActField({ actionCount, completedToday }: ActFieldProps) {
+export function ActField({ actionCount, completedToday, fullScreen }: ActFieldProps) {
   const colors = useColors();
   const fieldGreen = '#4A8C5C';
   const barnColor = colors.ink3;
@@ -93,7 +94,7 @@ export function ActField({ actionCount, completedToday }: ActFieldProps) {
   const bladeConfigs = useBladeConfigs(bladeCount);
 
   return (
-    <View style={[styles.container, { backgroundColor: fieldGreen + '0C' }]}>
+    <View style={[styles.container, fullScreen && styles.containerFull, { backgroundColor: fieldGreen + '0C' }]}>
       {/* Sky */}
       <View style={[styles.sky, { backgroundColor: fieldGreen + '06' }]} />
 
@@ -209,6 +210,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
     borderRadius: 16,
+  },
+  containerFull: {
+    height: '100%',
+    borderRadius: 0,
   },
   sky: {
     position: 'absolute',

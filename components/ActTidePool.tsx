@@ -21,6 +21,7 @@ import { useColors } from '../constants/colors';
 interface ActTidePoolProps {
   actionCount: number;
   completedToday: number;
+  fullScreen?: boolean;
 }
 
 function useKelpConfigs(count: number) {
@@ -93,7 +94,7 @@ function KelpStrand({ config, index }: {
   );
 }
 
-export function ActTidePool({ actionCount, completedToday }: ActTidePoolProps) {
+export function ActTidePool({ actionCount, completedToday, fullScreen }: ActTidePoolProps) {
   const colors = useColors();
   const slate = '#5A6872';
   const seafoam = '#6A9E8E';
@@ -116,7 +117,7 @@ export function ActTidePool({ actionCount, completedToday }: ActTidePoolProps) {
   }));
 
   return (
-    <View style={[styles.container, { backgroundColor: slate + '0C' }]}>
+    <View style={[styles.container, fullScreen && styles.containerFull, { backgroundColor: slate + '0C' }]}>
       {/* Sky — misty */}
       <View style={[styles.sky, { backgroundColor: slate + '08' }]} />
 
@@ -198,6 +199,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
     borderRadius: 16,
+  },
+  containerFull: {
+    height: '100%',
+    borderRadius: 0,
   },
   sky: {
     position: 'absolute',

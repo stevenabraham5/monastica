@@ -223,6 +223,16 @@ export default function ActScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.actGround }]}>
       <StatusBar style="dark" />
+
+      {/* Full-screen scene background */}
+      <View style={StyleSheet.absoluteFill}>
+        <ActSceneCarousel
+          actionCount={actions.length + pendingEscalations.length + pendingProposals.length}
+          completedToday={0}
+          fullScreen
+        />
+      </View>
+
       <ScrollView
         contentContainerStyle={[
           styles.content,
@@ -237,11 +247,6 @@ export default function ActScreen() {
               ? `${actions.length} thing${actions.length === 1 ? '' : 's'} waiting for you`
               : 'Nothing waiting. You\u2019re clear.'}
           </TempoText>
-        </EnterView>
-
-        {/* Field hero */}
-        <EnterView delay={staggerDelays[0]} style={{ marginTop: spacing.xl }}>
-          <ActSceneCarousel actionCount={actions.length + pendingEscalations.length + pendingProposals.length} completedToday={0} />
         </EnterView>
 
         {/* Escalations — needs your decision */}
@@ -384,6 +389,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: spacing.md,
     borderLeftWidth: 3,
+    backgroundColor: 'rgba(250, 250, 248, 0.92)',
   },
   cardContent: {
     flex: 1,
@@ -397,5 +403,8 @@ const styles = StyleSheet.create({
   emptyState: {
     marginTop: spacing['5xl'],
     alignItems: 'center',
+    backgroundColor: 'rgba(250, 250, 248, 0.85)',
+    borderRadius: 16,
+    padding: spacing.xl,
   },
 });

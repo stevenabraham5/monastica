@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, ScrollView, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
+import { View, ScrollView, StyleSheet, Pressable, ActivityIndicator, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
@@ -148,7 +148,7 @@ export default function NowScreen() {
   const [selectedFeeling, setSelectedFeeling] = useState<string | null>(lastCheckin?.feeling ?? null);
   const [sheetDomain, setSheetDomain] = useState<Domain | null>(null);
   const [reflectionText, setReflectionText] = useState('');
-  const [reflectOpen, setReflectOpen] = useState(false);
+  const [feelingModalOpen, setFeelingModalOpen] = useState(false);
 
   const handleFeeling = (f: string) => {
     setSelectedFeeling(f);
@@ -214,12 +214,17 @@ export default function NowScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Time of day */}
+        {/* Time of day — tip is tappable to open feeling check-in */}
         <EnterView delay={staggerDelays[0]}>
           <View style={styles.headerRow}>
-            <TempoText variant="body" color={colors.ink2}>
-              {timeCtx.greeting} {'\u00B7'} {timeCtx.tip}
-            </TempoText>
+            <Pressable onPress={() => setFeelingModalOpen(true)} accessibilityRole="button">
+              <TempoText variant="body" color={colors.ink2}>
+                {timeCtx.greeting} {'\u00B7'}{' '}
+                <TempoText variant="body" color={colors.accent} style={{ textDecorationLine: 'underline' }}>
+                  How are you right now?
+                </TempoText>
+              </TempoText>
+            </Pressable>
             <Pressable
               onPress={() => router.push('/settings')}
               accessibilityRole="button"
@@ -267,66 +272,77 @@ export default function NowScreen() {
         </EnterView>
 
         {/* Reflect — single button that expands to feeling chips + unified input */}
-        <EnterView delay={staggerDelays[1]} style={styles.section}>
-          {!reflectOpen ? (
-            <Pressable
-              onPress={() => setReflectOpen(true)}
-              style={[styles.reflectButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
-              accessibilityRole="button"
-            >
-              <TempoText variant="display-lg" italic>How are you right now?</TempoText>
-            </Pressable>
-          ) : (
-            <View>
-              <TempoText variant="display-lg" italic>How are you right now?</TempoText>
-              <View style={styles.feelingsRow}>
-                {FEELINGS.map((f) => (
-                  <Pressable
-                    key={f}
-                    onPress={() => handleFeeling(f)}
-                    style={[
-                      styles.feelingChip,
-                      {
-                        backgroundColor: selectedFeeling === f ? colors.accent : colors.surface,
-                        borderColor: selectedFeeling === f ? colors.accent : colors.border,
-                      },
-                    ]}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: selectedFeeling === f }}
-                  >
-                    <TempoText variant="caption" color={selectedFeeling === f ? '#FFFFFF' : colors.ink2}>
-                      {f}
+        {selectedFeeling && (
+          <EnterView delay={staggerDelays[1]} style={styles.section}>
+            <TempoText variant="caption" color={colors.ink2}>
+              Feeling {selectedFeeling}
+            </TempoText>
+            {selectedFeeling && (
+              <View style={{ marginTop: spacing.sm }}>
+                <TempoInput
+                  variant="body"
+                  placeholder={FEELING_PROMPTS[selectedFeeling]}
+                  multiline
+                  numberOfLines={3}
+                  value={reflectionText}
+                  onChangeText={setReflectionText}
+                  onSubmit={submitReflection}
+                />
+                {lastReflection?.agentResponse && (
+                  <View style={[styles.agentBubble, { backgroundColor: colors.surface, marginTop: spacing.md }]}>
+                    <TempoText variant="caption" color={colors.agent}>
+                      {lastReflection.agentResponse}
                     </TempoText>
-                  </Pressable>
-                ))}
+                  </View>
+                )}
               </View>
-
-              {/* Combined input — contextual prompt + reflection in one field */}
-              {selectedFeeling && (
-                <View style={{ marginTop: spacing.lg }}>
-                  <TempoInput
-                    variant="body"
-                    placeholder={FEELING_PROMPTS[selectedFeeling]}
-                    multiline
-                    numberOfLines={3}
-                    value={reflectionText}
-                    onChangeText={setReflectionText}
-                    onSubmit={submitReflection}
-                  />
-                  {/* Agent response to most recent reflection */}
-                  {lastReflection?.agentResponse && (
-                    <View style={[styles.agentBubble, { backgroundColor: colors.surface, marginTop: spacing.md }]}>
-                      <TempoText variant="caption" color={colors.agent}>
-                        {lastReflection.agentResponse}
-                      </TempoText>
-                    </View>
-                  )}
-                </View>
-              )}
-            </View>
-          )}
-        </EnterView>
+            )}
+          </EnterView>
+        )}
       </ScrollView>
+
+      {/* Feeling check-in modal */}
+      <Modal
+        visible={feelingModalOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setFeelingModalOpen(false)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setFeelingModalOpen(false)}
+        >
+          <Pressable style={[styles.modalContent, { backgroundColor: colors.ground }]}>
+            <TempoText variant="display-lg" italic style={{ marginBottom: spacing.lg }}>
+              How are you right now?
+            </TempoText>
+            <View style={styles.feelingsRow}>
+              {FEELINGS.map((f) => (
+                <Pressable
+                  key={f}
+                  onPress={() => {
+                    handleFeeling(f);
+                    setFeelingModalOpen(false);
+                  }}
+                  style={[
+                    styles.feelingChip,
+                    {
+                      backgroundColor: selectedFeeling === f ? colors.accent : colors.surface,
+                      borderColor: selectedFeeling === f ? colors.accent : colors.border,
+                    },
+                  ]}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: selectedFeeling === f }}
+                >
+                  <TempoText variant="caption" color={selectedFeeling === f ? '#FFFFFF' : colors.ink2}>
+                    {f}
+                  </TempoText>
+                </Pressable>
+              ))}
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       {/* Domain detail sheet */}
       <DomainSheet
@@ -387,6 +403,19 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     alignItems: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.xl,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 400,
+    borderRadius: 20,
+    padding: spacing['2xl'],
   },
   // Agent row — compact tappable item
   agentRow: {
