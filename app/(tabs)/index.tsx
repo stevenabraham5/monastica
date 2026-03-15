@@ -195,6 +195,7 @@ export default function NowScreen() {
   const [sheetDomain, setSheetDomain] = useState<Domain | null>(null);
   const [reflectionText, setReflectionText] = useState('');
   const [feelingModalOpen, setFeelingModalOpen] = useState(false);
+  const [modalStep, setModalStep] = useState<'feeling' | 'followup'>('feeling');
 
   const handleFeeling = (f: string) => {
     setSelectedFeeling(f);
@@ -259,15 +260,8 @@ export default function NowScreen() {
         <ReflectSceneCarousel checkinsToday={checkinsToday} latestFeeling={selectedFeeling} fullScreen />
       </View>
 
-      <ScrollView
-        contentContainerStyle={[
-          styles.content,
-          { paddingTop: insets.top + spacing.xl },
-        ]}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Greeting + settings */}
+      {/* Top content — greeting + check-in */}
+      <View style={[styles.topContent, { paddingTop: insets.top + spacing.xl }]}>
         <EnterView delay={staggerDelays[0]}>
           <View style={styles.headerRow}>
             <TempoText variant="body" color={colors.ink2}>
@@ -283,75 +277,43 @@ export default function NowScreen() {
           </View>
         </EnterView>
 
-        {/* Check-in button — warm, animated, inviting */}
         <EnterView delay={staggerDelays[0]} style={{ marginTop: spacing.lg }}>
-          <CheckInButton onPress={() => setFeelingModalOpen(true)} selectedFeeling={selectedFeeling} />
+          <CheckInButton onPress={() => { setModalStep('feeling'); setFeelingModalOpen(true); }} selectedFeeling={selectedFeeling} />
         </EnterView>
+      </View>
 
-        {/* Tempo index */}
-        <EnterView delay={staggerDelays[0]} style={styles.section}>
-          <View style={styles.contentCard}>
-            <View style={styles.tempoHeader}>
-              <TempoText variant="label" color={colors.ink3}>TEMPO</TempoText>
-              <TempoText variant="heading" color={colors.accent}>{tempoScore}%</TempoText>
-            </View>
-            {!domains.some((d) => d.subjectiveLevel != null) && (
-              <TempoText variant="caption" color={colors.ink2} style={{ marginBottom: spacing.md }}>
-                Tap a domain to set how it feels right now.
-              </TempoText>
-            )}
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.pulseRow}
-          >
-            {domains.map((d, i) => (
-              <GoalCard
-                key={d.id}
-                domain={d.name}
-                goalStatement={d.goal}
-                targetHours={d.targetHours}
-                actualHours={d.actualHours}
-                subjectiveLevel={d.subjectiveLevel}
-                onPress={() => setSheetDomain(d)}
-                index={i}
-              />
-            ))}
-          </ScrollView>
-          </View>
-        </EnterView>
-
-        {/* Reflect — single button that expands to feeling chips + unified input */}
-        {selectedFeeling && (
-          <EnterView delay={staggerDelays[1]} style={styles.section}>
-            <TempoText variant="caption" color={colors.ink2}>
-              Feeling {selectedFeeling}
-            </TempoText>
-            {selectedFeeling && (
-              <View style={{ marginTop: spacing.sm }}>
-                <TempoInput
-                  variant="body"
-                  placeholder={FEELING_PROMPTS[selectedFeeling]}
-                  multiline
-                  numberOfLines={3}
-                  value={reflectionText}
-                  onChangeText={setReflectionText}
-                  onSubmit={submitReflection}
-                />
-                {lastReflection?.agentResponse && (
-                  <View style={[styles.agentBubble, { backgroundColor: colors.surface, marginTop: spacing.md }]}>
-                    <TempoText variant="caption" color={colors.agent}>
-                      {lastReflection.agentResponse}
-                    </TempoText>
-                  </View>
-                )}
-              </View>
-            )}
-          </EnterView>
+      {/* Bottom-justified domains section */}
+      <View style={[styles.bottomSection, { paddingBottom: spacing.lg }]}>
+        <View style={styles.tempoHeader}>
+          <TempoText variant="label" color={colors.ink3}>TEMPO</TempoText>
+          <TempoText variant="heading" color={colors.accent}>{tempoScore}%</TempoText>
+        </View>
+        {!domains.some((d) => d.subjectiveLevel != null) && (
+          <TempoText variant="caption" color={colors.ink2} style={{ marginBottom: spacing.md, textAlign: 'center' }}>
+            Tap a domain to set how it feels right now.
+          </TempoText>
         )}
-      </ScrollView>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.pulseRow}
+        >
+          {domains.map((d, i) => (
+            <GoalCard
+              key={d.id}
+              domain={d.name}
+              goalStatement={d.goal}
+              targetHours={d.targetHours}
+              actualHours={d.actualHours}
+              subjectiveLevel={d.subjectiveLevel}
+              onPress={() => setSheetDomain(d)}
+              index={i}
+            />
+          ))}
+        </ScrollView>
+      </View>
 
-      {/* Feeling check-in modal */}
+      {/* Feeling check-in modal — two-step: feeling then follow-up */}
       <Modal
         visible={feelingModalOpen}
         transparent
@@ -363,33 +325,83 @@ export default function NowScreen() {
           onPress={() => setFeelingModalOpen(false)}
         >
           <Pressable style={[styles.modalContent, { backgroundColor: colors.ground }]}>
-            <TempoText variant="heading" style={{ fontSize: 28, marginBottom: spacing.xl }}>
-              How are you right now?
-            </TempoText>
-            <View style={styles.feelingsRow}>
-              {FEELINGS.map((f) => (
-                <Pressable
-                  key={f}
-                  onPress={() => {
-                    handleFeeling(f);
+            {modalStep === 'feeling' ? (
+              <>
+                <TempoText variant="heading" style={{ fontSize: 28, marginBottom: spacing.xl }}>
+                  How are you right now?
+                </TempoText>
+                <View style={styles.feelingsRow}>
+                  {FEELINGS.map((f) => (
+                    <Pressable
+                      key={f}
+                      onPress={() => {
+                        handleFeeling(f);
+                        setReflectionText('');
+                        setModalStep('followup');
+                      }}
+                      style={[
+                        styles.feelingChip,
+                        {
+                          backgroundColor: selectedFeeling === f ? colors.accent : colors.surface,
+                          borderColor: selectedFeeling === f ? colors.accent : colors.border,
+                        },
+                      ]}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: selectedFeeling === f }}
+                    >
+                      <TempoText variant="body" color={selectedFeeling === f ? '#FFFFFF' : colors.ink}>
+                        {f}
+                      </TempoText>
+                    </Pressable>
+                  ))}
+                </View>
+              </>
+            ) : (
+              <>
+                <TempoText variant="heading" style={{ fontSize: 24, marginBottom: spacing.md }}>
+                  {FEELING_PROMPTS[selectedFeeling ?? 'steady']}
+                </TempoText>
+                <TempoInput
+                  variant="body"
+                  placeholder="Write something..."
+                  multiline
+                  numberOfLines={3}
+                  value={reflectionText}
+                  onChangeText={setReflectionText}
+                  onSubmit={(text) => {
+                    submitReflection(text);
                     setFeelingModalOpen(false);
+                    setModalStep('feeling');
                   }}
-                  style={[
-                    styles.feelingChip,
-                    {
-                      backgroundColor: selectedFeeling === f ? colors.accent : colors.surface,
-                      borderColor: selectedFeeling === f ? colors.accent : colors.border,
-                    },
-                  ]}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: selectedFeeling === f }}
-                >
-                  <TempoText variant="body" color={selectedFeeling === f ? '#FFFFFF' : colors.ink}>
-                    {f}
-                  </TempoText>
-                </Pressable>
-              ))}
-            </View>
+                />
+                <View style={styles.modalActions}>
+                  <Pressable
+                    onPress={() => {
+                      setFeelingModalOpen(false);
+                      setModalStep('feeling');
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel="Skip"
+                  >
+                    <TempoText variant="caption" color={colors.ink3}>Skip</TempoText>
+                  </Pressable>
+                  {reflectionText.trim().length > 0 && (
+                    <Pressable
+                      onPress={() => {
+                        submitReflection(reflectionText);
+                        setFeelingModalOpen(false);
+                        setModalStep('feeling');
+                      }}
+                      style={[styles.modalSubmitButton, { backgroundColor: colors.accent }]}
+                      accessibilityRole="button"
+                      accessibilityLabel="Save"
+                    >
+                      <TempoText variant="body" color="#FFFFFF">Save</TempoText>
+                    </Pressable>
+                  )}
+                </View>
+              </>
+            )}
           </Pressable>
         </Pressable>
       </Modal>
@@ -411,22 +423,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  content: {
+  topContent: {
     paddingHorizontal: spacing.xl,
-    paddingBottom: spacing['3xl'],
+  },
+  bottomSection: {
+    paddingHorizontal: spacing.lg,
+    alignItems: 'center',
   },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  section: {
-    marginTop: spacing['2xl'],
-  },
-  contentCard: {
-    backgroundColor: 'rgba(250, 250, 248, 0.88)',
-    borderRadius: 16,
-    padding: spacing.lg,
   },
   sectionLabel: {
     marginBottom: spacing.sm,
@@ -487,6 +494,17 @@ const styles = StyleSheet.create({
     maxWidth: 400,
     borderRadius: 20,
     padding: spacing['2xl'],
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: spacing.xl,
+  },
+  modalSubmitButton: {
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.sm,
+    borderRadius: 20,
   },
   // Agent row — compact tappable item
   agentRow: {
