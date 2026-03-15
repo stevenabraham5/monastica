@@ -32,13 +32,15 @@ const FEELING_PROMPTS: Record<string, string> = {
   energised: 'Energised \u2014 what will you channel this into?',
 };
 
-function getTimeContext(): string {
+function getTimeContext(): { greeting: string; tip: string } {
   const h = new Date().getHours();
-  if (h < 6)  return 'Early hours';
-  if (h < 12) return 'Morning';
-  if (h < 17) return 'Afternoon';
-  if (h < 21) return 'Evening';
-  return 'Night';
+  if (h < 6)  return { greeting: 'Early hours', tip: 'Be gentle with yourself.' };
+  if (h < 9)  return { greeting: 'Morning', tip: 'What matters most today?' };
+  if (h < 12) return { greeting: 'Morning', tip: 'How\u2019s the energy?' };
+  if (h < 15) return { greeting: 'Afternoon', tip: 'Good time for a check-in.' };
+  if (h < 17) return { greeting: 'Afternoon', tip: 'How\u2019s the day landing?' };
+  if (h < 21) return { greeting: 'Evening', tip: 'What will you carry forward?' };
+  return { greeting: 'Night', tip: 'Let it settle.' };
 }
 
 // ── Agent-simulated responses ──
@@ -215,6 +217,8 @@ export default function NowScreen() {
   // Most recent reflection with agent response
   const lastReflection = reflections.length > 0 ? reflections[0] : null;
 
+  const timeCtx = getTimeContext();
+
   return (
     <View style={[styles.container, { backgroundColor: colors.reflectGround }]}>
       <StatusBar style="dark" />
@@ -229,7 +233,9 @@ export default function NowScreen() {
         {/* Time of day */}
         <EnterView delay={staggerDelays[0]}>
           <View style={styles.headerRow}>
-            <TempoText variant="body" color={colors.ink2}>{getTimeContext()}</TempoText>
+            <TempoText variant="body" color={colors.ink2}>
+              {timeCtx.greeting} {'\u00B7'} {timeCtx.tip}
+            </TempoText>
             <Pressable
               onPress={() => router.push('/settings')}
               accessibilityRole="button"
