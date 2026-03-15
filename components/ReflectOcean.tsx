@@ -40,20 +40,20 @@ const FEELING_TINTS: Record<string, string> = {
   restless:  '#7898AA',
 };
 
-// Domain icons that float on the water
+// Domain symbols that float on the water — matching GoalCard symbols
 const FLOATING_ICONS = [
-  { emoji: '\u{1F4A4}', x: '12%', delay: 0 },      // sleep
-  { emoji: '\u{1F3C3}', x: '28%', delay: 400 },     // movement
-  { emoji: '\u{1F957}', x: '42%', delay: 800 },     // nourishment
-  { emoji: '\u{1F3A8}', x: '58%', delay: 200 },     // creative
-  { emoji: '\u{1F4BB}', x: '72%', delay: 600 },     // work
-  { emoji: '\u{1F4D6}', x: '85%', delay: 1000 },    // learning
-  { emoji: '\u2764\uFE0F', x: '20%', delay: 300 },  // people
-  { emoji: '\u{1F91D}', x: '68%', delay: 700 },     // professional rel
+  { symbol: '\u263D', tint: '#7B8FA1', x: '12%', delay: 0 },      // ☽ sleep
+  { symbol: '\u223F', tint: '#6B9F78', x: '28%', delay: 400 },    // ∿ movement
+  { symbol: '\u25CB', tint: '#C49A6C', x: '42%', delay: 800 },    // ○ nourishment
+  { symbol: '\u2727', tint: '#9B7EC8', x: '58%', delay: 200 },    // ✧ creative
+  { symbol: '\u25A0', tint: '#5A7D8F', x: '72%', delay: 600 },    // ■ work
+  { symbol: '\u2022', tint: '#4A8C6F', x: '85%', delay: 1000 },   // • learning
+  { symbol: '\u2661', tint: '#C07878', x: '20%', delay: 300 },    // ♡ people
+  { symbol: '\u2229', tint: '#7889A0', x: '68%', delay: 700 },    // ∩ professional
 ];
 
-function FloatingIcon({ emoji, x, delay, waterColor }: {
-  emoji: string; x: string; delay: number; waterColor: string;
+function FloatingIcon({ symbol, tint, x, delay }: {
+  symbol: string; tint: string; x: string; delay: number;
 }) {
   const y = useSharedValue(0);
   const drift = useSharedValue(0);
@@ -87,7 +87,7 @@ function FloatingIcon({ emoji, x, delay, waterColor }: {
 
   return (
     <Animated.View style={[styles.floatingIcon, { left: x as any }, style]}>
-      <TempoText variant="caption" style={{ fontSize: 14 }}>{emoji}</TempoText>
+      <TempoText variant="caption" style={{ fontSize: 16, color: tint }}>{symbol}</TempoText>
     </Animated.View>
   );
 }
@@ -177,14 +177,14 @@ export function ReflectOcean({ checkinsToday, latestFeeling }: ReflectOceanProps
       {/* Ship — bobbing left of center */}
       <BobbingShip waterColor={waterColor} />
 
-      {/* Floating domain icons on the water */}
+      {/* Floating domain symbols on the water */}
       {FLOATING_ICONS.map((icon) => (
         <FloatingIcon
-          key={icon.emoji}
-          emoji={icon.emoji}
+          key={icon.symbol}
+          symbol={icon.symbol}
+          tint={icon.tint}
           x={icon.x}
           delay={icon.delay}
-          waterColor={waterColor}
         />
       ))}
 
