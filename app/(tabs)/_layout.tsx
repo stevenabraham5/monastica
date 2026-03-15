@@ -34,13 +34,19 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Now',
+          title: 'Reflect',
+        }}
+      />
+      <Tabs.Screen
+        name="act"
+        options={{
+          title: 'Act',
         }}
       />
       <Tabs.Screen
         name="patterns"
         options={{
-          title: 'Patterns',
+          title: 'Adapt',
         }}
       />
       <Tabs.Screen

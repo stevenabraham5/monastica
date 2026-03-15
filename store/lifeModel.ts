@@ -22,6 +22,7 @@ export interface Reflection {
   id: string;
   date: string;
   text: string;
+  agentResponse?: string;
 }
 
 export interface Checkin {
@@ -57,6 +58,7 @@ interface LifeModelState {
   updateDomain: (id: string, updates: Partial<Domain>) => void;
   removeDomain: (id: string) => void;
   addReflection: (reflection: Reflection) => void;
+  updateReflection: (id: string, updates: Partial<Reflection>) => void;
   addCheckin: (checkin: Checkin) => void;
   addRelationship: (rel: Relationship) => void;
   updateRelationship: (id: string, updates: Partial<Relationship>) => void;
@@ -284,6 +286,13 @@ export const useLifeModel = create<LifeModelState>((set) => ({
   addReflection: (reflection) =>
     set((state) => ({
       reflections: [reflection, ...state.reflections],
+    })),
+
+  updateReflection: (id, updates) =>
+    set((state) => ({
+      reflections: state.reflections.map((r) =>
+        r.id === id ? { ...r, ...updates } : r,
+      ),
     })),
 
   addCheckin: (checkin) =>
