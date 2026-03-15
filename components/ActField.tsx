@@ -98,41 +98,41 @@ export function ActField({ actionCount, completedToday }: ActFieldProps) {
       <View style={[styles.sky, { backgroundColor: fieldGreen + '04' }]} />
 
       {/* Distant hills */}
-      <View style={[styles.distantHill1, { backgroundColor: fieldGreen + '0C' }]} />
-      <View style={[styles.distantHill2, { backgroundColor: fieldGreen + '08' }]} />
+      <View style={[styles.distantHill1, { backgroundColor: fieldGreen + '18' }]} />
+      <View style={[styles.distantHill2, { backgroundColor: fieldGreen + '12' }]} />
 
       {/* Horizon line */}
-      <View style={[styles.horizonLine, { backgroundColor: fieldGreen + '18' }]} />
+      <View style={[styles.horizonLine, { backgroundColor: fieldGreen + '30' }]} />
 
       {/* ── Distance elements ── */}
 
       {/* Barn — simple geometric shapes */}
       <View style={styles.barnGroup}>
         {/* Barn body */}
-        <View style={[styles.barnBody, { backgroundColor: barnColor, opacity: 0.15 }]} />
+        <View style={[styles.barnBody, { backgroundColor: barnColor, opacity: 0.35 }]} />
         {/* Barn roof — triangle approximated */}
         <View style={[styles.barnRoof, {
           borderBottomColor: barnColor,
           borderLeftColor: 'transparent',
           borderRightColor: 'transparent',
-          opacity: 0.15,
+          opacity: 0.35,
         }]} />
         {/* Barn door */}
-        <View style={[styles.barnDoor, { backgroundColor: fieldGreen + '10' }]} />
+        <View style={[styles.barnDoor, { backgroundColor: fieldGreen + '20' }]} />
         {/* Silo next to barn */}
-        <View style={[styles.silo, { backgroundColor: barnColor, opacity: 0.12 }]} />
-        <View style={[styles.siloTop, { backgroundColor: barnColor, opacity: 0.12, borderRadius: 4 }]} />
+        <View style={[styles.silo, { backgroundColor: barnColor, opacity: 0.30 }]} />
+        <View style={[styles.siloTop, { backgroundColor: barnColor, opacity: 0.30, borderRadius: 4 }]} />
       </View>
 
       {/* Fence posts — thin verticals along the horizon */}
       <View style={styles.fenceRow}>
         {Array.from({ length: 7 }).map((_, i) => (
           <View key={i} style={styles.fenceUnit}>
-            <View style={[styles.fencePost, { backgroundColor: barnColor, opacity: 0.12 }]} />
+            <View style={[styles.fencePost, { backgroundColor: barnColor, opacity: 0.30 }]} />
             {i < 6 && (
               <>
-                <View style={[styles.fenceRail, styles.fenceRailTop, { backgroundColor: barnColor, opacity: 0.08 }]} />
-                <View style={[styles.fenceRail, styles.fenceRailBot, { backgroundColor: barnColor, opacity: 0.08 }]} />
+                <View style={[styles.fenceRail, styles.fenceRailTop, { backgroundColor: barnColor, opacity: 0.22 }]} />
+                <View style={[styles.fenceRail, styles.fenceRailBot, { backgroundColor: barnColor, opacity: 0.22 }]} />
               </>
             )}
           </View>
@@ -140,7 +140,27 @@ export function ActField({ actionCount, completedToday }: ActFieldProps) {
       </View>
 
       {/* Ground */}
-      <View style={[styles.ground, { backgroundColor: fieldGreen + '0C' }]} />
+      <View style={[styles.ground, { backgroundColor: fieldGreen + '10' }]} />
+
+      {/* ── Small animals in foreground ── */}
+      {/* Bird on fence */}
+      <View style={styles.bird1}>
+        <View style={[styles.birdBody, { backgroundColor: barnColor, opacity: 0.35 }]} />
+        <View style={[styles.birdHead, { backgroundColor: barnColor, opacity: 0.35 }]} />
+        <View style={[styles.birdBeak, { backgroundColor: '#C49A6C', opacity: 0.40 }]} />
+      </View>
+      {/* Rabbit in grass — right side */}
+      <View style={styles.rabbit}>
+        <View style={[styles.rabbitBody, { backgroundColor: barnColor, opacity: 0.28 }]} />
+        <View style={[styles.rabbitHead, { backgroundColor: barnColor, opacity: 0.28 }]} />
+        <View style={[styles.rabbitEar, styles.rabbitEarL, { backgroundColor: barnColor, opacity: 0.28 }]} />
+        <View style={[styles.rabbitEar, styles.rabbitEarR, { backgroundColor: barnColor, opacity: 0.28 }]} />
+      </View>
+      {/* Second bird — flying in sky */}
+      <View style={styles.bird2}>
+        <View style={[styles.birdWingL, { backgroundColor: barnColor, opacity: 0.20 }]} />
+        <View style={[styles.birdWingR, { backgroundColor: barnColor, opacity: 0.20 }]} />
+      </View>
 
       {/* Grass blades — many, swaying */}
       {bladeConfigs.map((cfg, i) => (
@@ -342,5 +362,91 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 12,
     letterSpacing: 0.5,
+  },
+
+  // ── Animals ──
+  // Bird perched on fence
+  bird1: {
+    position: 'absolute',
+    top: '36%',
+    left: '18%',
+  },
+  birdBody: {
+    width: 8,
+    height: 5,
+    borderRadius: 3,
+  },
+  birdHead: {
+    position: 'absolute',
+    top: -3,
+    right: -2,
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+  },
+  birdBeak: {
+    position: 'absolute',
+    top: -2,
+    right: -5,
+    width: 4,
+    height: 2,
+    borderRadius: 1,
+  },
+
+  // Rabbit
+  rabbit: {
+    position: 'absolute',
+    bottom: '54%',
+    right: '25%',
+  },
+  rabbitBody: {
+    width: 10,
+    height: 7,
+    borderRadius: 4,
+  },
+  rabbitHead: {
+    position: 'absolute',
+    top: -2,
+    right: -4,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  rabbitEar: {
+    position: 'absolute',
+    width: 2,
+    height: 6,
+    borderRadius: 1,
+  },
+  rabbitEarL: {
+    top: -7,
+    right: -2,
+    transform: [{ rotate: '-10deg' }],
+  },
+  rabbitEarR: {
+    top: -7,
+    right: -5,
+    transform: [{ rotate: '10deg' }],
+  },
+
+  // Flying bird
+  bird2: {
+    position: 'absolute',
+    top: '18%',
+    right: '30%',
+  },
+  birdWingL: {
+    width: 8,
+    height: 2,
+    borderRadius: 1,
+    transform: [{ rotate: '-25deg' }],
+  },
+  birdWingR: {
+    width: 8,
+    height: 2,
+    borderRadius: 1,
+    marginTop: -1,
+    marginLeft: 2,
+    transform: [{ rotate: '25deg' }],
   },
 });

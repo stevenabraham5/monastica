@@ -166,14 +166,33 @@ export function ReflectOcean({ checkinsToday, latestFeeling }: ReflectOceanProps
       <View style={[styles.water, { backgroundColor: waterColor + '18' }]} />
 
       {/* Wave lines — thin horizontal strokes suggesting movement */}
-      <View style={[styles.waveLine, styles.wave1, { backgroundColor: waterColor + '20' }]} />
-      <View style={[styles.waveLine, styles.wave2, { backgroundColor: waterColor + '15' }]} />
-      <View style={[styles.waveLine, styles.wave3, { backgroundColor: waterColor + '12' }]} />
+      <View style={[styles.waveLine, styles.wave1, { backgroundColor: waterColor + '25' }]} />
+      <View style={[styles.waveLine, styles.wave2, { backgroundColor: waterColor + '20' }]} />
+      <View style={[styles.waveLine, styles.wave3, { backgroundColor: waterColor + '18' }]} />
+      <View style={[styles.waveLine, styles.wave4, { backgroundColor: waterColor + '15' }]} />
 
-      {/* Land mass — rounded shape on the right, above the horizon */}
-      <View style={[styles.landmass, { backgroundColor: colors.border }]}>
-        <View style={[styles.landPeak, { backgroundColor: colors.border }]} />
+      {/* ── Landforms ── */}
+
+      {/* Main island — right side, with cliff face */}
+      <View style={[styles.landmass, { backgroundColor: colors.ink3, opacity: 0.25 }]}>
+        <View style={[styles.landPeak, { backgroundColor: colors.ink3, opacity: 0.25 }]} />
       </View>
+      {/* Cliff face on main island — steep left edge */}
+      <View style={[styles.cliffFace, { backgroundColor: colors.ink3, opacity: 0.18 }]} />
+
+      {/* Small island — far left, low */}
+      <View style={[styles.islandSmallLeft, { backgroundColor: colors.ink3, opacity: 0.18 }]} />
+
+      {/* Distant island — center-left, on horizon */}
+      <View style={[styles.islandDistant, { backgroundColor: colors.ink3, opacity: 0.12 }]} />
+
+      {/* Rocky outcrop — far right, partially off-screen */}
+      <View style={[styles.rockRight, { backgroundColor: colors.ink3, opacity: 0.22 }]} />
+      <View style={[styles.rockRightPeak, { backgroundColor: colors.ink3, opacity: 0.22 }]} />
+
+      {/* Cliff promontory — left foreground */}
+      <View style={[styles.cliffLeft, { backgroundColor: colors.ink3, opacity: 0.15 }]} />
+      <View style={[styles.cliffLeftTop, { backgroundColor: colors.ink3, opacity: 0.15 }]} />
 
       {/* Ship — bobbing left of center */}
       <BobbingShip waterColor={waterColor} />
@@ -248,13 +267,18 @@ const styles = StyleSheet.create({
     left: '20%',
     width: '35%',
   },
-  // Land mass — right side, rounded hill
+  wave4: {
+    top: '86%',
+    left: '50%',
+    width: '28%',
+  },
+  // Main island — right side, rounded hill with cliff
   landmass: {
     position: 'absolute',
     right: '8%',
-    top: '25%',
-    width: 70,
-    height: 35,
+    top: '22%',
+    width: 75,
+    height: 40,
     borderTopLeftRadius: 35,
     borderTopRightRadius: 25,
     borderBottomLeftRadius: 4,
@@ -262,12 +286,84 @@ const styles = StyleSheet.create({
   },
   landPeak: {
     position: 'absolute',
-    left: 15,
-    top: -12,
+    left: 12,
+    top: -14,
+    width: 35,
+    height: 22,
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 18,
+  },
+  // Cliff face — steep vertical on the left side of main island
+  cliffFace: {
+    position: 'absolute',
+    right: '22%',
+    top: '25%',
+    width: 6,
+    height: 36,
+    borderTopLeftRadius: 2,
+    borderBottomLeftRadius: 1,
+  },
+  // Small low island — far left
+  islandSmallLeft: {
+    position: 'absolute',
+    left: '5%',
+    top: '35%',
+    width: 40,
+    height: 14,
+    borderTopLeftRadius: 14,
+    borderTopRightRadius: 10,
+    borderBottomLeftRadius: 2,
+    borderBottomRightRadius: 2,
+  },
+  // Distant island on horizon — center-left
+  islandDistant: {
+    position: 'absolute',
+    left: '32%',
+    top: '36%',
+    width: 28,
+    height: 10,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 8,
+    borderBottomLeftRadius: 1,
+    borderBottomRightRadius: 1,
+  },
+  // Rocky outcrop — far right, partially off-screen
+  rockRight: {
+    position: 'absolute',
+    right: -8,
+    top: '30%',
     width: 30,
-    height: 20,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 15,
+    height: 30,
+    borderTopLeftRadius: 6,
+    borderTopRightRadius: 0,
+    borderBottomLeftRadius: 2,
+  },
+  rockRightPeak: {
+    position: 'absolute',
+    right: 2,
+    top: '22%',
+    width: 16,
+    height: 18,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 4,
+  },
+  // Cliff promontory — left foreground
+  cliffLeft: {
+    position: 'absolute',
+    left: -6,
+    top: '55%',
+    width: 24,
+    height: 50,
+    borderTopRightRadius: 8,
+    borderBottomRightRadius: 4,
+  },
+  cliffLeftTop: {
+    position: 'absolute',
+    left: -6,
+    top: '50%',
+    width: 18,
+    height: 14,
+    borderTopRightRadius: 12,
   },
   // Ship
   ship: {
