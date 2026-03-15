@@ -211,6 +211,11 @@ export default function NowScreen() {
             <TempoText variant="label" color={colors.ink3}>TEMPO</TempoText>
             <TempoText variant="heading" color={colors.accent}>{tempoScore}%</TempoText>
           </View>
+          {!domains.some((d) => d.subjectiveLevel != null) && (
+            <TempoText variant="caption" color={colors.ink2} style={{ marginBottom: spacing.md }}>
+              Tap a domain to set how it feels right now.
+            </TempoText>
+          )}
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
