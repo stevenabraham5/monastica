@@ -32,14 +32,14 @@ interface ReflectOceanProps {
 }
 
 const FEELING_TINTS: Record<string, string> = {
-  rested:    '#4DB8E8',
-  focused:   '#3A9AD4',
-  steady:    '#4CAED8',
-  energised: '#2CB0E8',
-  scattered: '#6B94B8',
-  drained:   '#7890A0',
-  flat:      '#8898A4',
-  restless:  '#5888AA',
+  rested:    '#70C8F0',   // clear sky blue
+  focused:   '#E0B040',   // warm amber
+  steady:    '#60B0D8',   // soft blue
+  energised: '#F0A020',   // bright orange-gold
+  scattered: '#607888',   // dark steel
+  drained:   '#908898',   // muted lavender-grey
+  flat:      '#888090',   // flat grey-purple
+  restless:  '#506878',   // stormy teal
 };
 
 // Domain symbols that float on the water — matching GoalCard symbols
@@ -146,15 +146,25 @@ const FEELING_ATMOSPHERE: Record<string, {
   skyColor: string;
   cloudColor: string;
   waterTint: string;
+  /** Cloud drift speed in ms — lower = faster */
+  driftSpeed: number;
+  /** Pulse speed in ms — lower = faster */
+  pulseSpeed: number;
+  /** Drift amplitude in px */
+  driftAmount: number;
 }> = {
-  rested:    { type: 'calm',      skyColor: '#D0EAF8', cloudColor: '#E8F4FF', waterTint: '#90D0F0' },
-  steady:    { type: 'calm',      skyColor: '#C8E2F0', cloudColor: '#E0F0FF', waterTint: '#88C8E8' },
-  focused:   { type: 'bright',    skyColor: '#F8ECC0', cloudColor: '#FFF8D0', waterTint: '#D0B860' },
-  energised: { type: 'bright',    skyColor: '#F8E0A0', cloudColor: '#FFF0B0', waterTint: '#E0C040' },
-  scattered: { type: 'turbulent', skyColor: '#A0AAB8', cloudColor: '#8898A8', waterTint: '#607888' },
-  restless:  { type: 'turbulent', skyColor: '#909AA8', cloudColor: '#788898', waterTint: '#506878' },
-  drained:   { type: 'muted',     skyColor: '#B8BCC4', cloudColor: '#A0A8B0', waterTint: '#889098' },
-  flat:      { type: 'muted',     skyColor: '#B0B4BC', cloudColor: '#98A0A8', waterTint: '#808890' },
+  // CALM — soft blue, slow gentle drift, barely moving
+  rested:    { type: 'calm',      skyColor: '#C8E8FF', cloudColor: '#E8F4FF', waterTint: '#80C8F0', driftSpeed: 7000, pulseSpeed: 4000, driftAmount: 8 },
+  steady:    { type: 'calm',      skyColor: '#B8D8F0', cloudColor: '#D8ECFF', waterTint: '#70B8E0', driftSpeed: 8000, pulseSpeed: 4500, driftAmount: 6 },
+  // BRIGHT — warm golden/orange, medium speed, radiant
+  focused:   { type: 'bright',    skyColor: '#FFF0B0', cloudColor: '#FFF8D0', waterTint: '#E8C050', driftSpeed: 4500, pulseSpeed: 2200, driftAmount: 12 },
+  energised: { type: 'bright',    skyColor: '#FFE080', cloudColor: '#FFEEAA', waterTint: '#F0B030', driftSpeed: 3000, pulseSpeed: 1500, driftAmount: 18 },
+  // TURBULENT — dark grey/steel blue, fast erratic motion
+  scattered: { type: 'turbulent', skyColor: '#6878888', cloudColor: '#586878', waterTint: '#405060', driftSpeed: 1800, pulseSpeed: 1200, driftAmount: 28 },
+  restless:  { type: 'turbulent', skyColor: '#586070', cloudColor: '#4A5868', waterTint: '#384858', driftSpeed: 1400, pulseSpeed: 900, driftAmount: 35 },
+  // MUTED — desaturated lavender/grey, very slow, nearly still
+  drained:   { type: 'muted',     skyColor: '#C0B8C8', cloudColor: '#B0A8B8', waterTint: '#908890', driftSpeed: 12000, pulseSpeed: 6000, driftAmount: 4 },
+  flat:      { type: 'muted',     skyColor: '#B8B0C0', cloudColor: '#A8A0B0', waterTint: '#888088', driftSpeed: 15000, pulseSpeed: 8000, driftAmount: 3 },
 };
 
 function FeelingAtmosphere({ feeling }: { feeling: string | null }) {
@@ -165,29 +175,34 @@ function FeelingAtmosphere({ feeling }: { feeling: string | null }) {
 
   useEffect(() => {
     if (!feeling) return;
-    // Fade in on feeling change
+    const atmo = FEELING_ATMOSPHERE[feeling] ?? FEELING_ATMOSPHERE.steady;
+    const speed = atmo.driftSpeed;
+    const amp = atmo.driftAmount;
+    const pSpeed = atmo.pulseSpeed;
+
+    // Fade in
     fadeIn.value = 0;
     fadeIn.value = withTiming(1, { duration: 800, easing: Easing.out(Easing.cubic) });
 
-    // Cloud/element drift
+    // Drift — speed and amplitude vary dramatically per mood
     drift1.value = withRepeat(
       withSequence(
-        withTiming(15, { duration: 4000, easing: Easing.inOut(Easing.sin) }),
-        withTiming(-15, { duration: 4000, easing: Easing.inOut(Easing.sin) }),
+        withTiming(amp, { duration: speed, easing: Easing.inOut(Easing.sin) }),
+        withTiming(-amp, { duration: speed, easing: Easing.inOut(Easing.sin) }),
       ),
       -1,
     );
     drift2.value = withRepeat(
       withSequence(
-        withTiming(-10, { duration: 3200, easing: Easing.inOut(Easing.sin) }),
-        withTiming(10, { duration: 3200, easing: Easing.inOut(Easing.sin) }),
+        withTiming(-amp * 0.7, { duration: speed * 0.8, easing: Easing.inOut(Easing.sin) }),
+        withTiming(amp * 0.7, { duration: speed * 0.8, easing: Easing.inOut(Easing.sin) }),
       ),
       -1,
     );
     pulse.value = withRepeat(
       withSequence(
-        withTiming(1, { duration: 2000, easing: Easing.inOut(Easing.sin) }),
-        withTiming(0, { duration: 2000, easing: Easing.inOut(Easing.sin) }),
+        withTiming(1, { duration: pSpeed, easing: Easing.inOut(Easing.sin) }),
+        withTiming(0, { duration: pSpeed, easing: Easing.inOut(Easing.sin) }),
       ),
       -1,
     );
@@ -210,7 +225,12 @@ function FeelingAtmosphere({ feeling }: { feeling: string | null }) {
   }));
 
   const rayStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(pulse.value, [0, 1], [0.15, 0.40]),
+    opacity: interpolate(pulse.value, [0, 1], [0.20, 0.55]),
+  }));
+
+  const pulseGlowStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(pulse.value, [0, 1], [0.10, 0.35]),
+    transform: [{ scale: interpolate(pulse.value, [0, 1], [0.9, 1.15]) }],
   }));
 
   if (!feeling) return null;
@@ -222,68 +242,97 @@ function FeelingAtmosphere({ feeling }: { feeling: string | null }) {
 
   return (
     <Animated.View style={[StyleSheet.absoluteFill, containerStyle]} pointerEvents="none">
-      {/* Full-screen sky wash — dramatically tints the upper half */}
-      <View style={[atmosStyles.skyWash, { backgroundColor: sc, opacity: 0.45 }]} />
 
-      {/* Full-screen water tint — tints the lower half */}
-      <View style={[atmosStyles.waterWash, { backgroundColor: wt, opacity: 0.30 }]} />
-
-      {/* Large clouds — all types get big prominent clouds */}
-      <Animated.View style={[atmosStyles.cloud, { top: '3%', left: '2%', width: 140, height: 48, backgroundColor: cc, opacity: 0.75, borderRadius: 24 }, cloud1Style]} />
-      <Animated.View style={[atmosStyles.cloud, { top: '1%', right: '8%', width: 120, height: 40, backgroundColor: cc, opacity: 0.65, borderRadius: 20 }, cloud2Style]} />
-      <Animated.View style={[atmosStyles.cloud, { top: '10%', left: '30%', width: 100, height: 36, backgroundColor: cc, opacity: 0.55, borderRadius: 18 }, cloud3Style]} />
-
-      {/* Type-specific dramatic effects */}
-      {atmo.type === 'bright' && (
-        <>
-          {/* Massive sun glow — pulsing golden orb */}
-          <Animated.View style={[atmosStyles.glow, { top: '-12%', right: '-5%', width: 200, height: 200, backgroundColor: '#F0C840', borderRadius: 100 }, rayStyle]} />
-          {/* Wide sun rays */}
-          <Animated.View style={[atmosStyles.ray, { top: '0%', right: '5%', width: 8, height: 140, backgroundColor: '#F0D060', transform: [{ rotate: '25deg' }] }, rayStyle]} />
-          <Animated.View style={[atmosStyles.ray, { top: '-4%', right: '18%', width: 6, height: 120, backgroundColor: '#F0D060', transform: [{ rotate: '15deg' }] }, rayStyle]} />
-          <Animated.View style={[atmosStyles.ray, { top: '2%', right: '0%', width: 6, height: 100, backgroundColor: '#F0D060', transform: [{ rotate: '35deg' }] }, rayStyle]} />
-          <Animated.View style={[atmosStyles.ray, { top: '-5%', right: '12%', width: 5, height: 130, backgroundColor: '#F0D060', transform: [{ rotate: '8deg' }] }, rayStyle]} />
-          {/* Sparkles */}
-          <Animated.View style={[atmosStyles.sparkle, { top: '15%', left: '20%' }, rayStyle]} />
-          <Animated.View style={[atmosStyles.sparkle, { top: '25%', right: '25%' }, rayStyle]} />
-          <Animated.View style={[atmosStyles.sparkle, { top: '35%', left: '60%' }, rayStyle]} />
-          <Animated.View style={[atmosStyles.sparkle, { top: '18%', right: '40%' }, rayStyle]} />
-        </>
-      )}
-
-      {atmo.type === 'muted' && (
-        <>
-          {/* Heavy fog banks — wide, layered, covering much of the scene */}
-          <Animated.View style={[atmosStyles.cloud, { top: '15%', left: -30, width: '85%', height: 44, backgroundColor: cc, opacity: 0.70, borderRadius: 22 }, cloud1Style]} />
-          <Animated.View style={[atmosStyles.cloud, { top: '25%', right: -20, width: '75%', height: 36, backgroundColor: cc, opacity: 0.60, borderRadius: 18 }, cloud2Style]} />
-          <Animated.View style={[atmosStyles.cloud, { top: '35%', left: '5%', width: '65%', height: 30, backgroundColor: cc, opacity: 0.50, borderRadius: 15 }, cloud3Style]} />
-          <Animated.View style={[atmosStyles.cloud, { top: '45%', right: '0%', width: '70%', height: 26, backgroundColor: cc, opacity: 0.40, borderRadius: 13 }, cloud1Style]} />
-          {/* Muted overlay */}
-          <View style={[atmosStyles.skyWash, { backgroundColor: '#9098A0', opacity: 0.15 }]} />
-        </>
-      )}
-
-      {atmo.type === 'turbulent' && (
-        <>
-          {/* Dark storm clouds — big and moody */}
-          <Animated.View style={[atmosStyles.cloud, { top: '5%', left: '0%', width: 130, height: 44, backgroundColor: '#606870', opacity: 0.70, borderRadius: 22 }, cloud2Style]} />
-          <Animated.View style={[atmosStyles.cloud, { top: '12%', right: '3%', width: 110, height: 38, backgroundColor: '#586068', opacity: 0.65, borderRadius: 19 }, cloud1Style]} />
-          <Animated.View style={[atmosStyles.cloud, { top: '0%', left: '25%', width: 90, height: 32, backgroundColor: '#505860', opacity: 0.55, borderRadius: 16 }, cloud3Style]} />
-          {/* Choppy wave lines across water */}
-          <View style={[atmosStyles.extraWave, { top: '46%', left: '0%', width: '55%', backgroundColor: '#506070', opacity: 0.35, height: 3 }]} />
-          <View style={[atmosStyles.extraWave, { top: '52%', left: '25%', width: '60%', backgroundColor: '#506070', opacity: 0.30, height: 3 }]} />
-          <View style={[atmosStyles.extraWave, { top: '58%', left: '8%', width: '50%', backgroundColor: '#506070', opacity: 0.25, height: 2.5 }]} />
-          <View style={[atmosStyles.extraWave, { top: '64%', left: '35%', width: '45%', backgroundColor: '#506070', opacity: 0.22, height: 2 }]} />
-        </>
-      )}
-
+      {/* ═══════════ CALM — serene blue, soft light, gentle shimmer ═══════════ */}
       {atmo.type === 'calm' && (
         <>
-          {/* Wide shimmer lines on the water — peaceful glints */}
-          <Animated.View style={[atmosStyles.waterGlow, { top: '44%', left: '15%', width: 130, height: 10, backgroundColor: '#fff', opacity: 0.30, borderRadius: 5 }, cloud1Style]} />
-          <Animated.View style={[atmosStyles.waterGlow, { top: '52%', left: '35%', width: 100, height: 8, backgroundColor: '#fff', opacity: 0.25, borderRadius: 4 }, cloud2Style]} />
-          <Animated.View style={[atmosStyles.waterGlow, { top: '60%', left: '10%', width: 110, height: 7, backgroundColor: '#fff', opacity: 0.20, borderRadius: 3.5 }, cloud3Style]} />
-          <Animated.View style={[atmosStyles.waterGlow, { top: '68%', left: '40%', width: 80, height: 6, backgroundColor: '#fff', opacity: 0.18, borderRadius: 3 }, cloud1Style]} />
+          {/* Cool blue sky wash */}
+          <View style={[atmosStyles.skyWash, { backgroundColor: sc, opacity: 0.50 }]} />
+          {/* Soft blue water */}
+          <View style={[atmosStyles.waterWash, { backgroundColor: wt, opacity: 0.35 }]} />
+          {/* Gentle wispy clouds — few, high, light */}
+          <Animated.View style={[atmosStyles.cloud, { top: '5%', left: '10%', width: 160, height: 32, backgroundColor: '#E0F0FF', opacity: 0.50, borderRadius: 16 }, cloud1Style]} />
+          <Animated.View style={[atmosStyles.cloud, { top: '3%', right: '5%', width: 120, height: 26, backgroundColor: '#D8ECFF', opacity: 0.40, borderRadius: 13 }, cloud2Style]} />
+          {/* Soft light — diffuse glow from above */}
+          <Animated.View style={[atmosStyles.glow, { top: '-5%', left: '20%', width: 180, height: 120, backgroundColor: '#FFFFFF', borderRadius: 60 }, pulseGlowStyle]} />
+          {/* Water shimmer — wide gentle glints that drift slowly */}
+          <Animated.View style={[atmosStyles.waterGlow, { top: '48%', left: '10%', width: 160, height: 8, backgroundColor: '#FFFFFF', opacity: 0.25, borderRadius: 4 }, cloud1Style]} />
+          <Animated.View style={[atmosStyles.waterGlow, { top: '56%', left: '40%', width: 120, height: 6, backgroundColor: '#FFFFFF', opacity: 0.20, borderRadius: 3 }, cloud2Style]} />
+          <Animated.View style={[atmosStyles.waterGlow, { top: '64%', left: '5%', width: 140, height: 5, backgroundColor: '#FFFFFF', opacity: 0.18, borderRadius: 2.5 }, cloud3Style]} />
+          <Animated.View style={[atmosStyles.waterGlow, { top: '72%', left: '50%', width: 90, height: 4, backgroundColor: '#FFFFFF', opacity: 0.15, borderRadius: 2 }, cloud1Style]} />
+        </>
+      )}
+
+      {/* ═══════════ BRIGHT — warm golden, radiant sun, sparkling ═══════════ */}
+      {atmo.type === 'bright' && (
+        <>
+          {/* Warm golden sky */}
+          <View style={[atmosStyles.skyWash, { backgroundColor: sc, opacity: 0.60 }]} />
+          {/* Amber-tinted water */}
+          <View style={[atmosStyles.waterWash, { backgroundColor: wt, opacity: 0.40 }]} />
+          {/* Bright warm clouds */}
+          <Animated.View style={[atmosStyles.cloud, { top: '4%', left: '5%', width: 130, height: 42, backgroundColor: '#FFF0C0', opacity: 0.70, borderRadius: 21 }, cloud1Style]} />
+          <Animated.View style={[atmosStyles.cloud, { top: '8%', right: '10%', width: 100, height: 34, backgroundColor: '#FFECB0', opacity: 0.55, borderRadius: 17 }, cloud2Style]} />
+          {/* Massive pulsing sun */}
+          <Animated.View style={[atmosStyles.glow, { top: '-15%', right: '-8%', width: 240, height: 240, backgroundColor: '#FFD020', borderRadius: 120 }, pulseGlowStyle]} />
+          {/* Wide intense sun rays */}
+          <Animated.View style={[atmosStyles.ray, { top: '-2%', right: '5%', width: 10, height: 180, backgroundColor: '#FFD840', transform: [{ rotate: '22deg' }] }, rayStyle]} />
+          <Animated.View style={[atmosStyles.ray, { top: '-6%', right: '20%', width: 8, height: 160, backgroundColor: '#FFD840', transform: [{ rotate: '12deg' }] }, rayStyle]} />
+          <Animated.View style={[atmosStyles.ray, { top: '0%', right: '-2%', width: 8, height: 140, backgroundColor: '#FFD840', transform: [{ rotate: '35deg' }] }, rayStyle]} />
+          <Animated.View style={[atmosStyles.ray, { top: '-8%', right: '14%', width: 6, height: 170, backgroundColor: '#FFCC30', transform: [{ rotate: '5deg' }] }, rayStyle]} />
+          {/* Sparkles scattered across the scene */}
+          <Animated.View style={[atmosStyles.sparkle, { top: '12%', left: '15%', width: 8, height: 8, borderRadius: 4 }, rayStyle]} />
+          <Animated.View style={[atmosStyles.sparkle, { top: '22%', right: '30%', width: 6, height: 6, borderRadius: 3 }, rayStyle]} />
+          <Animated.View style={[atmosStyles.sparkle, { top: '32%', left: '55%', width: 7, height: 7, borderRadius: 3.5 }, rayStyle]} />
+          <Animated.View style={[atmosStyles.sparkle, { top: '16%', left: '70%', width: 5, height: 5, borderRadius: 2.5 }, rayStyle]} />
+          <Animated.View style={[atmosStyles.sparkle, { top: '40%', left: '25%', width: 6, height: 6, borderRadius: 3 }, rayStyle]} />
+          {/* Golden water reflections */}
+          <Animated.View style={[atmosStyles.waterGlow, { top: '50%', left: '20%', width: 120, height: 6, backgroundColor: '#FFE060', opacity: 0.30, borderRadius: 3 }, cloud1Style]} />
+          <Animated.View style={[atmosStyles.waterGlow, { top: '58%', left: '45%', width: 80, height: 5, backgroundColor: '#FFD840', opacity: 0.25, borderRadius: 2.5 }, cloud2Style]} />
+        </>
+      )}
+
+      {/* ═══════════ TURBULENT — dark steel, fast clouds, choppy water ═══════════ */}
+      {atmo.type === 'turbulent' && (
+        <>
+          {/* Dark moody sky */}
+          <View style={[atmosStyles.skyWash, { backgroundColor: sc, opacity: 0.65 }]} />
+          {/* Dark churning water */}
+          <View style={[atmosStyles.waterWash, { backgroundColor: wt, opacity: 0.50 }]} />
+          {/* Heavy dark storm clouds — big, many, fast-moving */}
+          <Animated.View style={[atmosStyles.cloud, { top: '0%', left: '-5%', width: 180, height: 56, backgroundColor: '#485060', opacity: 0.80, borderRadius: 28 }, cloud1Style]} />
+          <Animated.View style={[atmosStyles.cloud, { top: '7%', right: '-3%', width: 160, height: 50, backgroundColor: '#404858', opacity: 0.75, borderRadius: 25 }, cloud2Style]} />
+          <Animated.View style={[atmosStyles.cloud, { top: '14%', left: '20%', width: 140, height: 44, backgroundColor: '#384050', opacity: 0.65, borderRadius: 22 }, cloud3Style]} />
+          <Animated.View style={[atmosStyles.cloud, { top: '3%', left: '50%', width: 120, height: 40, backgroundColor: '#3A4858', opacity: 0.60, borderRadius: 20 }, cloud1Style]} />
+          <Animated.View style={[atmosStyles.cloud, { top: '20%', right: '15%', width: 100, height: 36, backgroundColor: '#445060', opacity: 0.55, borderRadius: 18 }, cloud2Style]} />
+          {/* Choppy wave lines — many, thick, dark */}
+          <View style={[atmosStyles.extraWave, { top: '44%', left: '0%', width: '60%', backgroundColor: '#384858', opacity: 0.45, height: 4 }]} />
+          <View style={[atmosStyles.extraWave, { top: '49%', left: '30%', width: '65%', backgroundColor: '#405060', opacity: 0.40, height: 3.5 }]} />
+          <View style={[atmosStyles.extraWave, { top: '54%', left: '5%', width: '55%', backgroundColor: '#384858', opacity: 0.35, height: 3 }]} />
+          <View style={[atmosStyles.extraWave, { top: '59%', left: '35%', width: '50%', backgroundColor: '#405060', opacity: 0.30, height: 3 }]} />
+          <View style={[atmosStyles.extraWave, { top: '64%', left: '10%', width: '60%', backgroundColor: '#384858', opacity: 0.28, height: 2.5 }]} />
+          <View style={[atmosStyles.extraWave, { top: '69%', left: '25%', width: '55%', backgroundColor: '#405060', opacity: 0.25, height: 2 }]} />
+          {/* Dark vignette from edges */}
+          <View style={[atmosStyles.skyWash, { backgroundColor: '#202830', opacity: 0.20, height: '100%' }]} />
+        </>
+      )}
+
+      {/* ═══════════ MUTED — desaturated lavender-grey, near-still, heavy fog ═══════════ */}
+      {atmo.type === 'muted' && (
+        <>
+          {/* Flat grey-lavender sky */}
+          <View style={[atmosStyles.skyWash, { backgroundColor: sc, opacity: 0.55 }]} />
+          {/* Muted grey water */}
+          <View style={[atmosStyles.waterWash, { backgroundColor: wt, opacity: 0.40 }]} />
+          {/* Dense layered fog — barely moving, stacked across the whole scene */}
+          <Animated.View style={[atmosStyles.cloud, { top: '8%', left: -40, width: '110%', height: 50, backgroundColor: '#B0A8B8', opacity: 0.55, borderRadius: 25 }, cloud1Style]} />
+          <Animated.View style={[atmosStyles.cloud, { top: '18%', right: -30, width: '105%', height: 44, backgroundColor: '#A8A0B0', opacity: 0.50, borderRadius: 22 }, cloud2Style]} />
+          <Animated.View style={[atmosStyles.cloud, { top: '28%', left: -20, width: '100%', height: 38, backgroundColor: '#B8B0C0', opacity: 0.45, borderRadius: 19 }, cloud3Style]} />
+          <Animated.View style={[atmosStyles.cloud, { top: '38%', right: -10, width: '95%', height: 34, backgroundColor: '#A8A0B0', opacity: 0.40, borderRadius: 17 }, cloud1Style]} />
+          <Animated.View style={[atmosStyles.cloud, { top: '48%', left: '0%', width: '90%', height: 30, backgroundColor: '#B0A8B8', opacity: 0.35, borderRadius: 15 }, cloud2Style]} />
+          <Animated.View style={[atmosStyles.cloud, { top: '58%', right: '0%', width: '85%', height: 26, backgroundColor: '#A8A0B0', opacity: 0.30, borderRadius: 13 }, cloud3Style]} />
+          {/* Overall desaturation overlay */}
+          <View style={[atmosStyles.skyWash, { backgroundColor: '#9890A0', opacity: 0.20, height: '100%' }]} />
         </>
       )}
     </Animated.View>
