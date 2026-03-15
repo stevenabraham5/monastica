@@ -28,6 +28,7 @@ import Animated, {
 import { useColors } from '../constants/colors';
 import { TEMPO_EASING } from '../constants/motion';
 import { typeScale } from '../constants/typography';
+import { QuickCapture } from '../components/QuickCapture';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -120,6 +121,9 @@ export default function RootLayout() {
           }}
         />
       </Animated.View>
+
+      {/* Quick capture — available on all screens */}
+      {splashDone && <QuickCapture />}
 
       {/* Splash overlay */}
       {!splashDone && (
