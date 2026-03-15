@@ -59,12 +59,19 @@ export function GoalCard({
     height: `${fillHeight.value * 100}%`,
   }));
 
+  const hasRating = subjectiveLevel != null;
+
   return (
     <Pressable
       onPress={onPress}
-      style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
+      style={({ pressed }) => [
+        styles.card,
+        { backgroundColor: colors.surface, borderColor: pressed ? visual.tint : colors.border },
+        pressed && { opacity: 0.85 },
+      ]}
       accessibilityLabel={`${domain}`}
       accessibilityRole="button"
+      accessibilityHint="Tap to rate how this feels"
     >
       {/* Symbol */}
       <TempoText variant="heading" style={[styles.symbol, { color: visual.tint }]}>
@@ -86,6 +93,11 @@ export function GoalCard({
       <TempoText variant="caption" color={colors.ink2} style={styles.label} numberOfLines={2}>
         {domain}
       </TempoText>
+
+      {/* CTA hint */}
+      {!hasRating && (
+        <TempoText variant="caption" color={visual.tint} style={styles.cta}>set</TempoText>
+      )}
     </Pressable>
   );
 }
@@ -120,5 +132,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 10,
     lineHeight: 13,
+  },
+  cta: {
+    fontSize: 9,
+    letterSpacing: 0.5,
+    marginTop: 2,
   },
 });

@@ -95,13 +95,17 @@ export function DomainSheet({ domain, visible, onClose, onAdjust, onAddNote, rec
             {prompt.question}
           </TempoText>
 
-          {/* Level selector — 5 tappable circles */}
-          <View style={styles.levelRow}>
-            <TempoText variant="caption" color={colors.ink3}>{prompt.lowLabel}</TempoText>
-            <View style={styles.dots}>
+          {/* Level selector — segmented bar */}
+          <View style={styles.levelBar}>
+            <View style={styles.barLabels}>
+              <TempoText variant="caption" color={colors.ink3}>{prompt.lowLabel}</TempoText>
+              <TempoText variant="caption" color={colors.ink3}>{prompt.highLabel}</TempoText>
+            </View>
+            <View style={styles.barTrack}>
               {LEVEL_WORDS.map((word, i) => {
                 const value = i / (LEVEL_WORDS.length - 1);
-                const isActive = Math.abs(currentLevel - value) < 0.13;
+                const isAtOrBelow = currentLevel >= value - 0.01;
+                const isSelected = Math.abs(currentLevel - value) < 0.13;
                 return (
                   <Pressable
                     key={word}
@@ -109,20 +113,29 @@ export function DomainSheet({ domain, visible, onClose, onAdjust, onAddNote, rec
                     accessibilityLabel={word}
                     accessibilityRole="button"
                     style={[
-                      styles.dot,
+                      styles.barSegment,
                       {
-                        backgroundColor: isActive ? visual.tint : colors.surface,
-                        borderColor: isActive ? visual.tint : colors.border,
-                        width: 36 + i * 4,
-                        height: 36 + i * 4,
-                        borderRadius: (36 + i * 4) / 2,
+                        backgroundColor: isAtOrBelow ? visual.tint : colors.border,
+                        opacity: isAtOrBelow ? (0.4 + (i / (LEVEL_WORDS.length - 1)) * 0.6) : 0.3,
                       },
+                      i === 0 && { borderTopLeftRadius: 6, borderBottomLeftRadius: 6 },
+                      i === LEVEL_WORDS.length - 1 && { borderTopRightRadius: 6, borderBottomRightRadius: 6 },
                     ]}
-                  />
+                  >
+                    {isSelected && (
+                      <View style={[styles.barDot, { backgroundColor: '#FFFFFF' }]} />
+                    )}
+                  </Pressable>
                 );
               })}
             </View>
-            <TempoText variant="caption" color={colors.ink3}>{prompt.highLabel}</TempoText>
+            <View style={styles.barWordRow}>
+              {LEVEL_WORDS.map((word) => (
+                <TempoText key={word} variant="caption" color={colors.ink3} style={styles.barWord}>
+                  {word}
+                </TempoText>
+              ))}
+            </View>
           </View>
 
           {/* Recent activity summary */}
@@ -247,24 +260,37 @@ const styles = StyleSheet.create({
   question: {
     marginBottom: spacing['2xl'],
   },
-  levelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: spacing.md,
+  levelBar: {
     marginBottom: spacing['2xl'],
   },
-  dots: {
+  barLabels: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
+    justifyContent: 'space-between',
+    marginBottom: spacing.sm,
+  },
+  barTrack: {
+    flexDirection: 'row',
+    height: 36,
+    gap: 3,
+  },
+  barSegment: {
     flex: 1,
+    alignItems: 'center',
     justifyContent: 'center',
   },
-  dot: {
-    borderWidth: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center',
+  barDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  barWordRow: {
+    flexDirection: 'row',
+    marginTop: spacing.xs,
+  },
+  barWord: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 9,
   },
   recentSection: {
     borderRadius: 12,
