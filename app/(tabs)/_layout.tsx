@@ -46,7 +46,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="patterns"
         options={{
-          title: 'Adapt',
+          title: 'Grow',
         }}
       />
       <Tabs.Screen

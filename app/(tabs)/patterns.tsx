@@ -240,7 +240,7 @@ export default function PatternsScreen() {
       >
         {/* Header */}
         <EnterView delay={staggerDelays[0]}>
-          <TempoText variant="heading">Adapt</TempoText>
+          <TempoText variant="heading">Grow</TempoText>
           <TempoText variant="caption" color={colors.ink3} style={{ marginTop: spacing.xs }}>
             Where you go to grow
           </TempoText>
