@@ -159,9 +159,7 @@ function CheckInButton({ onPress, selectedFeeling }: { onPress: () => void; sele
     transform: [{ scale: 1 + breathe.value * 0.08 }],
   }));
 
-  const label = selectedFeeling
-    ? `Feeling ${selectedFeeling}`
-    : 'How are you right now?';
+  const label = 'How are you right now?';
 
   return (
     <Pressable onPress={onPress} accessibilityRole="button" style={styles.checkinOuter}>
