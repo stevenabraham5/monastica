@@ -56,36 +56,27 @@ function ProposalCard({ proposal, onAccept, onDefer, onDismiss }: {
   const catLabel = CATEGORY_LABELS[proposal.category] ?? proposal.category;
 
   return (
-    <View style={[styles.proposalCard, { backgroundColor: colors.surface }]}>
-      <View style={styles.proposalHeader}>
-        <View style={[styles.categoryPill, { backgroundColor: catColor }]}>
+    <View style={[styles.card, { backgroundColor: colors.surface }]}>
+      <View style={styles.cardTop}>
+        <View style={{ flex: 1 }}>
+          <TempoText variant="body">{proposal.title}</TempoText>
+          <TempoText variant="caption" color={colors.ink3} style={{ marginTop: 2 }}>
+            {proposal.reason}
+          </TempoText>
+        </View>
+        <View style={[styles.pill, { backgroundColor: catColor }]}>
           <TempoText variant="data" color="#FFFFFF">{catLabel}</TempoText>
         </View>
-        <TempoText variant="data" color={colors.ink3}>{proposal.urgencyScore}</TempoText>
       </View>
-      <TempoText variant="subheading" style={{ marginTop: spacing.sm }}>{proposal.title}</TempoText>
-      <TempoText variant="caption" color={colors.ink2} style={{ marginTop: spacing.xs }}>{proposal.reason}</TempoText>
-      <View style={styles.actionRow}>
-        <Pressable
-          onPress={() => onAccept(proposal.id)}
-          style={[styles.actionBtn, { backgroundColor: colors.accent }]}
-          accessibilityRole="button"
-        >
+      <View style={styles.cardActions}>
+        <Pressable onPress={() => onAccept(proposal.id)} style={[styles.btnFill, { backgroundColor: colors.accent }]} accessibilityRole="button">
           <TempoText variant="caption" color="#FFFFFF">Book it</TempoText>
         </Pressable>
-        <Pressable
-          onPress={() => onDefer(proposal.id)}
-          style={[styles.actionBtnOutline, { borderColor: colors.ink3 }]}
-          accessibilityRole="button"
-        >
+        <Pressable onPress={() => onDefer(proposal.id)} accessibilityRole="button">
           <TempoText variant="caption" color={colors.ink3}>Later</TempoText>
         </Pressable>
-        <Pressable
-          onPress={() => onDismiss(proposal.id)}
-          style={[styles.actionBtnOutline, { borderColor: colors.danger }]}
-          accessibilityRole="button"
-        >
-          <TempoText variant="caption" color={colors.danger}>Not now</TempoText>
+        <Pressable onPress={() => onDismiss(proposal.id)} accessibilityRole="button">
+          <TempoText variant="caption" color={colors.danger}>Dismiss</TempoText>
         </Pressable>
       </View>
     </View>
@@ -102,41 +93,27 @@ function EscalationCard({ esc, onResolve }: {
   const roleColor = esc.roleClassification ? ROLE_COLORS[esc.roleClassification] : colors.ink3;
 
   return (
-    <View style={[styles.escalationCard, { backgroundColor: colors.surface, borderLeftColor: roleColor }]}>
-      <View style={styles.escHeader}>
-        <TempoText variant="subheading">{esc.meetingTitle}</TempoText>
-        {esc.roleClassification && (
-          <View style={[styles.roleBadge, { backgroundColor: roleColor }]}>
-            <TempoText variant="data" color="#FFFFFF">{esc.roleClassification}</TempoText>
-          </View>
-        )}
+    <View style={[styles.card, { backgroundColor: colors.surface, borderLeftWidth: 3, borderLeftColor: roleColor }]}>
+      <View style={styles.cardTop}>
+        <View style={{ flex: 1 }}>
+          <TempoText variant="body">{esc.meetingTitle}</TempoText>
+          <TempoText variant="caption" color={colors.ink3} style={{ marginTop: 2 }}>
+            {esc.organizer} {'\u00B7'} {esc.reason.replace(/_/g, ' ')}
+          </TempoText>
+        </View>
+        <TempoText variant="data" color={colors.ink3}>{esc.sentinelConfidence}%</TempoText>
       </View>
-      <TempoText variant="data" color={colors.ink3} style={{ marginTop: spacing.xs }}>
-        {esc.organizer} {'\u00B7'} {esc.sentinelConfidence}% confident
-      </TempoText>
-      <TempoText variant="caption" color={colors.ink2} style={{ marginTop: spacing.sm }}>
-        {esc.reason.replace(/_/g, ' ')}
-      </TempoText>
-      <View style={styles.actionRow}>
-        <Pressable
-          onPress={() => onResolve(esc.id, 'attend')}
-          style={[styles.actionBtn, { backgroundColor: colors.accent }]}
-          accessibilityRole="button"
-        >
+      <View style={styles.cardActions}>
+        <Pressable onPress={() => onResolve(esc.id, 'attend')} style={[styles.btnFill, { backgroundColor: colors.accent }]} accessibilityRole="button">
           <TempoText variant="caption" color="#FFFFFF">Attend</TempoText>
         </Pressable>
-        <Pressable
-          onPress={() => onResolve(esc.id, 'agent')}
-          style={[styles.actionBtn, { backgroundColor: colors.agent }]}
-          accessibilityRole="button"
-        >
+        <Pressable onPress={() => onResolve(esc.id, 'agent')} style={[styles.btnFill, { backgroundColor: colors.agent }]} accessibilityRole="button">
           <TempoText variant="caption" color="#FFFFFF">Send agent</TempoText>
         </Pressable>
-        <Pressable
-          onPress={() => onResolve(esc.id, 'decline')}
-          style={[styles.actionBtnOutline, { borderColor: colors.danger }]}
-          accessibilityRole="button"
-        >
+        <Pressable onPress={() => onResolve(esc.id, 'clarify')} accessibilityRole="button">
+          <TempoText variant="caption" color={colors.agent}>Ask why</TempoText>
+        </Pressable>
+        <Pressable onPress={() => onResolve(esc.id, 'decline')} accessibilityRole="button">
           <TempoText variant="caption" color={colors.danger}>Decline</TempoText>
         </Pressable>
       </View>
@@ -429,56 +406,32 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.base,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  // Proposal cards
-  proposalCard: {
+  // Cards (shared between proposals + escalations)
+  card: {
     borderRadius: 12,
     padding: spacing.base,
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
   },
-  proposalHeader: {
+  cardTop: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  categoryPill: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    borderRadius: 8,
-  },
-  // Escalation cards
-  escalationCard: {
-    borderRadius: 12,
-    padding: spacing.base,
-    borderLeftWidth: 3,
-    marginBottom: spacing.md,
-  },
-  escHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  roleBadge: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    borderRadius: 8,
-  },
-  // Shared action buttons
-  actionRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    alignItems: 'flex-start',
     gap: spacing.sm,
-    marginTop: spacing.base,
   },
-  actionBtn: {
+  pill: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  cardActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.base,
+    marginTop: spacing.md,
+  },
+  btnFill: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: 16,
-  },
-  actionBtnOutline: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: 16,
-    borderWidth: 1,
   },
   // Sentinel summary
   sentinelRow: {
