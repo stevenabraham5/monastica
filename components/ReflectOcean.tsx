@@ -160,7 +160,7 @@ const FEELING_ATMOSPHERE: Record<string, {
   focused:   { type: 'bright',    skyColor: '#FFF0B0', cloudColor: '#FFF8D0', waterTint: '#E8C050', driftSpeed: 4500, pulseSpeed: 2200, driftAmount: 12 },
   energised: { type: 'bright',    skyColor: '#FFE080', cloudColor: '#FFEEAA', waterTint: '#F0B030', driftSpeed: 3000, pulseSpeed: 1500, driftAmount: 18 },
   // TURBULENT — dark grey/steel blue, fast erratic motion
-  scattered: { type: 'turbulent', skyColor: '#6878888', cloudColor: '#586878', waterTint: '#405060', driftSpeed: 1800, pulseSpeed: 1200, driftAmount: 28 },
+  scattered: { type: 'turbulent', skyColor: '#687888', cloudColor: '#586878', waterTint: '#405060', driftSpeed: 1800, pulseSpeed: 1200, driftAmount: 28 },
   restless:  { type: 'turbulent', skyColor: '#586070', cloudColor: '#4A5868', waterTint: '#384858', driftSpeed: 1400, pulseSpeed: 900, driftAmount: 35 },
   // MUTED — desaturated lavender/grey, very slow, nearly still
   drained:   { type: 'muted',     skyColor: '#C0B8C8', cloudColor: '#B0A8B8', waterTint: '#908890', driftSpeed: 12000, pulseSpeed: 6000, driftAmount: 4 },
