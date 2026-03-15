@@ -62,10 +62,19 @@ export const useAuthStore = create<AuthState>((set) => ({
   hasCompletedWelcome: false,
 
   initialize: () => {
-    // Get current session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      set({ session, user: session?.user ?? null, loading: false });
-    });
+    // Get current session — with catch so we don't hang if Supabase isn't configured
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        set({ session, user: session?.user ?? null, loading: false });
+      })
+      .catch(() => {
+        set({ loading: false });
+      });
+
+    // Fallback timeout — if Supabase never responds, stop loading after 3s
+    setTimeout(() => {
+      set((state) => state.loading ? { loading: false } : {});
+    }, 3000);
 
     // Listen for auth changes
     supabase.auth.onAuthStateChange((_event, session) => {
