@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { TempoText } from '../../components/TempoText';
-import { ActField } from '../../components/ActField';
+import { ActSceneCarousel } from '../../components/ActSceneCarousel';
 import { EnterView } from '../../components/EnterView';
 import { useColors } from '../../constants/colors';
 import { spacing } from '../../constants/spacing';
@@ -241,7 +241,7 @@ export default function ActScreen() {
 
         {/* Field hero */}
         <EnterView delay={staggerDelays[0]} style={{ marginTop: spacing.xl }}>
-          <ActField actionCount={actions.length + pendingEscalations.length + pendingProposals.length} completedToday={0} />
+          <ActSceneCarousel actionCount={actions.length + pendingEscalations.length + pendingProposals.length} completedToday={0} />
         </EnterView>
 
         {/* Escalations — needs your decision */}

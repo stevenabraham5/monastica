@@ -97,6 +97,21 @@ export function ActField({ actionCount, completedToday }: ActFieldProps) {
       {/* Sky */}
       <View style={[styles.sky, { backgroundColor: fieldGreen + '04' }]} />
 
+      {/* Clouds */}
+      <View style={styles.cloud1}>
+        <View style={[styles.cloudPuff, { width: 28, height: 12, backgroundColor: '#fff', opacity: 0.25 }]} />
+        <View style={[styles.cloudPuff, { width: 18, height: 10, left: 20, top: -3, backgroundColor: '#fff', opacity: 0.20 }]} />
+        <View style={[styles.cloudPuff, { width: 14, height: 8, left: -6, top: 1, backgroundColor: '#fff', opacity: 0.18 }]} />
+      </View>
+      <View style={styles.cloud2}>
+        <View style={[styles.cloudPuff, { width: 22, height: 10, backgroundColor: '#fff', opacity: 0.22 }]} />
+        <View style={[styles.cloudPuff, { width: 16, height: 8, left: 16, top: -2, backgroundColor: '#fff', opacity: 0.18 }]} />
+      </View>
+      <View style={styles.cloud3}>
+        <View style={[styles.cloudPuff, { width: 18, height: 8, backgroundColor: '#fff', opacity: 0.18 }]} />
+        <View style={[styles.cloudPuff, { width: 12, height: 7, left: 12, top: -1, backgroundColor: '#fff', opacity: 0.15 }]} />
+      </View>
+
       {/* Distant hills */}
       <View style={[styles.distantHill1, { backgroundColor: fieldGreen + '18' }]} />
       <View style={[styles.distantHill2, { backgroundColor: fieldGreen + '12' }]} />
@@ -176,32 +191,15 @@ export function ActField({ actionCount, completedToday }: ActFieldProps) {
         </View>
       )}
 
-      {/* Status */}
-      <View style={styles.statusRow}>
-        {actionCount === 0 ? (
-          <TempoText variant="caption" color={fieldGreen} style={styles.statusText}>
-            All clear
-          </TempoText>
-        ) : (
-          <TempoText variant="data" color={fieldGreen} style={styles.statusText}>
-            {actionCount} waiting
-          </TempoText>
-        )}
-        {completedToday > 0 && (
-          <TempoText variant="caption" color={fieldGreen + '88'} style={styles.statusText}>
-            {completedToday} done today
-          </TempoText>
-        )}
-      </View>
     </View>
   );
 }
 
-const HORIZON = '48%';
+const HORIZON = '58%';
 
 const styles = StyleSheet.create({
   container: {
-    height: 200,
+    height: 240,
     overflow: 'hidden',
     position: 'relative',
     borderRadius: 16,
@@ -214,10 +212,34 @@ const styles = StyleSheet.create({
     height: HORIZON,
   },
 
+  // Clouds
+  cloud1: {
+    position: 'absolute',
+    top: '12%',
+    left: '15%',
+    flexDirection: 'row',
+  },
+  cloud2: {
+    position: 'absolute',
+    top: '8%',
+    right: '20%',
+    flexDirection: 'row',
+  },
+  cloud3: {
+    position: 'absolute',
+    top: '22%',
+    left: '55%',
+    flexDirection: 'row',
+  },
+  cloudPuff: {
+    borderRadius: 20,
+    position: 'absolute',
+  },
+
   // Distant hills
   distantHill1: {
     position: 'absolute',
-    top: '32%',
+    top: '42%',
     left: '10%',
     width: '35%',
     height: '18%',
@@ -226,7 +248,7 @@ const styles = StyleSheet.create({
   },
   distantHill2: {
     position: 'absolute',
-    top: '36%',
+    top: '46%',
     right: '5%',
     width: '30%',
     height: '14%',
@@ -245,7 +267,7 @@ const styles = StyleSheet.create({
   // Barn
   barnGroup: {
     position: 'absolute',
-    top: '28%',
+    top: '38%',
     right: '18%',
   },
   barnBody: {
@@ -291,7 +313,7 @@ const styles = StyleSheet.create({
   // Fence
   fenceRow: {
     position: 'absolute',
-    top: '42%',
+    top: '52%',
     left: '5%',
     right: '50%',
     flexDirection: 'row',
@@ -329,7 +351,7 @@ const styles = StyleSheet.create({
   },
   blade: {
     position: 'absolute',
-    bottom: '52%',
+    bottom: '42%',
     width: 2,
     borderRadius: 1,
     backgroundColor: '#4A8C5C',
@@ -337,7 +359,7 @@ const styles = StyleSheet.create({
   },
   dotRow: {
     position: 'absolute',
-    bottom: '52%',
+    bottom: '42%',
     left: spacing.xl,
     right: spacing.xl,
     flexDirection: 'row',
@@ -351,24 +373,13 @@ const styles = StyleSheet.create({
     borderRadius: 2.5,
     opacity: 0.5,
   },
-  statusRow: {
-    position: 'absolute',
-    bottom: spacing.base,
-    left: spacing.base,
-    right: spacing.base,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  statusText: {
-    fontSize: 12,
-    letterSpacing: 0.5,
-  },
+
 
   // ── Animals ──
   // Bird perched on fence
   bird1: {
     position: 'absolute',
-    top: '36%',
+    top: '46%',
     left: '18%',
   },
   birdBody: {
@@ -396,7 +407,7 @@ const styles = StyleSheet.create({
   // Rabbit
   rabbit: {
     position: 'absolute',
-    bottom: '54%',
+    bottom: '44%',
     right: '25%',
   },
   rabbitBody: {
@@ -432,7 +443,7 @@ const styles = StyleSheet.create({
   // Flying bird
   bird2: {
     position: 'absolute',
-    top: '18%',
+    top: '14%',
     right: '30%',
   },
   birdWingL: {

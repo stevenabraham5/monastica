@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -6,6 +6,8 @@ import Animated, {
   withTiming,
   withDelay,
   interpolate,
+  Extrapolation,
+  SharedValue,
 } from 'react-native-reanimated';
 import { TempoText } from './TempoText';
 import { useColors } from '../constants/colors';
@@ -13,20 +15,19 @@ import { spacing } from '../constants/spacing';
 import { TEMPO_EASING } from '../constants/motion';
 
 /*
-  TempoTree — subway-map style visualization.
+  TempoTree — transit/subway-map style visualization.
 
-  All 8 domain "lines" originate from a single root at the bottom center
-  and travel upward, curving outward like transit lines on a map.
-  Each line is colored by its domain tint. Line thickness reflects
-  the domain's current level. Labels + symbols sit at the terminus.
-
-  Animation: lines grow upward from the root, staggered.
-  The trunk is a shared segment at the bottom before lines diverge.
+  8 domain "routes" arranged as a transit map:
+  - Left terminals: Sleep, Movement, Creative, Nourishment
+  - Right terminals: Professional Work, Learning, People, Professional Rel
+  - Central interchange spine at x=50% connecting transfer points
+  - Creative & Nourishment lines cross each other
+  - Thickness scales with domain level, colors by domain tint
 */
 
 interface DomainBranch {
   name: string;
-  level: number; // 0..1
+  level: number;
   tint: string;
 }
 
@@ -46,230 +47,300 @@ const DOMAIN_SYMBOLS: Record<string, string> = {
   'Professional Relationships': '\u2229',
 };
 
-// Each line's path: starts at center bottom, shares a trunk segment,
-// then curves to its final X position at the top.
-// xEnd = final horizontal position as % of container width
-// The vertical segment rises, then a diagonal/curved segment fans out.
-const LINE_PATHS = [
-  // Left lines (spread left from center)
-  { xEnd: 8,  trunkSplit: 0.70, side: 'left' as const },   // Sleep — far left, high split
-  { xEnd: 18, trunkSplit: 0.60, side: 'left' as const },   // Movement
-  { xEnd: 28, trunkSplit: 0.45, side: 'left' as const },   // Nourishment
-  { xEnd: 38, trunkSplit: 0.30, side: 'left' as const },   // Creative — near center
-  // Right lines (spread right from center)
-  { xEnd: 62, trunkSplit: 0.30, side: 'right' as const },  // Professional Work — near center
-  { xEnd: 72, trunkSplit: 0.45, side: 'right' as const },  // Learning
-  { xEnd: 82, trunkSplit: 0.60, side: 'right' as const },  // People I Love
-  { xEnd: 92, trunkSplit: 0.70, side: 'right' as const },  // Professional Relationships — far right
+const CONTAINER_HEIGHT = 300;
+
+// Route definitions: [x%, y%] waypoints.
+// Creative & Nourishment swap y-positions mid-route, creating a crossing.
+const ROUTE_DEFS = [
+  { name: 'Sleep & Recovery',           points: [[5,12],[36,12],[50,24]],             labelEnd: 'start' as const },
+  { name: 'Professional Work',          points: [[50,24],[64,12],[95,12]],            labelEnd: 'end' as const },
+  { name: 'Movement & Body',            points: [[5,40],[28,40],[50,40]],             labelEnd: 'start' as const },
+  { name: 'Learning & Growth',          points: [[50,40],[62,52],[95,52]],            labelEnd: 'end' as const },
+  // Creative renders before Nourishment — Nourishment crosses over
+  { name: 'Creative Expression',        points: [[5,58],[22,58],[36,74],[50,74]],     labelEnd: 'start' as const },
+  { name: 'Nourishment',                points: [[5,74],[22,74],[36,58],[50,58]],      labelEnd: 'start' as const },
+  { name: 'Professional Relationships', points: [[50,58],[64,58],[78,70],[95,70]],    labelEnd: 'end' as const },
+  { name: 'People I Love',              points: [[50,74],[64,86],[80,86],[95,86]],     labelEnd: 'end' as const },
 ];
 
-const CONTAINER_HEIGHT = 420;
-const ROOT_BOTTOM = 60;       // px from bottom for root dot
-const TRUNK_TOP = 0.15;       // top of branches as ratio of height
-const TRUNK_BOTTOM = 0.85;    // bottom of trunk as ratio of height
+const INTERCHANGES: [number, number][] = [
+  [50, 24],
+  [50, 40],
+  [50, 58],
+  [50, 74],
+];
 
-function SubwayLine({ branch, path, index }: {
-  branch: DomainBranch;
-  path: typeof LINE_PATHS[0];
-  index: number;
+// ── Segment line between two pixel-coordinate points ──
+
+function SegmentLine({
+  x1, y1, x2, y2,
+  thickness, color,
+  progress, segIndex, totalSegs,
+}: {
+  x1: number; y1: number; x2: number; y2: number;
+  thickness: number; color: string;
+  progress: SharedValue<number>;
+  segIndex: number; totalSegs: number;
 }) {
-  const colors = useColors();
-  const grow = useSharedValue(0);
-  const labelShow = useSharedValue(0);
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const length = Math.sqrt(dx * dx + dy * dy);
+  const angleDeg = Math.atan2(dx, dy) * (180 / Math.PI);
+
+  const style = useAnimatedStyle(() => {
+    const seg = interpolate(
+      progress.value,
+      [segIndex / totalSegs, (segIndex + 1) / totalSegs],
+      [0, 1],
+      Extrapolation.CLAMP,
+    );
+    return {
+      position: 'absolute' as const,
+      left: x1 - thickness / 2,
+      top: y1,
+      width: thickness,
+      height: length * seg,
+      backgroundColor: color,
+      borderRadius: thickness / 2,
+      transform: [{ rotate: `${angleDeg}deg` }],
+      transformOrigin: 'top center',
+      opacity: interpolate(seg, [0, 0.05, 1], [0, 0.7, 1]),
+    };
+  });
+
+  return <Animated.View style={style} />;
+}
+
+// ── Station dot ──
+
+function StationDot({
+  x, y, color, isInterchange, progress,
+}: {
+  x: number; y: number; color: string;
+  isInterchange: boolean;
+  progress: SharedValue<number>;
+}) {
+  const size = isInterchange ? 14 : 10;
+  const bw = isInterchange ? 3 : 2.5;
+
+  const style = useAnimatedStyle(() => ({
+    opacity: progress.value,
+    transform: [{ scale: interpolate(progress.value, [0, 1], [0.4, 1]) }],
+  }));
+
+  return (
+    <Animated.View
+      style={[
+        {
+          position: 'absolute',
+          left: x - size / 2,
+          top: y - size / 2,
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          backgroundColor: '#FAFAF8',
+          borderWidth: bw,
+          borderColor: color,
+          zIndex: 2,
+        },
+        style,
+      ]}
+    />
+  );
+}
+
+// ── Label at terminus ──
+
+function RouteLabel({
+  x, y, name, symbol, color, side, progress, containerWidth,
+}: {
+  x: number; y: number;
+  name: string; symbol: string; color: string;
+  side: 'start' | 'end';
+  progress: SharedValue<number>;
+  containerWidth: number;
+}) {
+  const style = useAnimatedStyle(() => ({
+    opacity: progress.value,
+    transform: [{ translateY: interpolate(progress.value, [0, 1], [4, 0]) }],
+  }));
+
+  if (side === 'start') {
+    return (
+      <Animated.View
+        style={[
+          {
+            position: 'absolute',
+            left: Math.max(x - 6, 0),
+            top: y - 22,
+            width: 90,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 3,
+            zIndex: 3,
+          },
+          style,
+        ]}
+      >
+        <TempoText variant="body" style={{ fontSize: 13, color }}>{symbol}</TempoText>
+        <TempoText variant="caption" color={color} style={{ fontSize: 9, lineHeight: 12 }} numberOfLines={2}>
+          {name}
+        </TempoText>
+      </Animated.View>
+    );
+  }
+
+  return (
+    <Animated.View
+      style={[
+        {
+          position: 'absolute',
+          right: Math.max(containerWidth - x - 6, 0),
+          top: y - 22,
+          width: 100,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'flex-end',
+          gap: 3,
+          zIndex: 3,
+        },
+        style,
+      ]}
+    >
+      <TempoText variant="caption" color={color} style={{ fontSize: 9, lineHeight: 12, textAlign: 'right' }} numberOfLines={2}>
+        {name}
+      </TempoText>
+      <TempoText variant="body" style={{ fontSize: 13, color }}>{symbol}</TempoText>
+    </Animated.View>
+  );
+}
+
+// ── Single route: segments + dots + label ──
+
+function SubwayRoute({
+  route, branch, index, cw, ch,
+}: {
+  route: typeof ROUTE_DEFS[0];
+  branch: DomainBranch | undefined;
+  index: number;
+  cw: number;
+  ch: number;
+}) {
+  const lineAnim = useSharedValue(0);
+  const dotAnim = useSharedValue(0);
 
   useEffect(() => {
-    grow.value = withDelay(
-      300 + index * 120,
-      withTiming(1, { duration: 1000, easing: TEMPO_EASING }),
+    lineAnim.value = withDelay(
+      100 + index * 120,
+      withTiming(1, { duration: 900, easing: TEMPO_EASING }),
     );
-    labelShow.value = withDelay(
-      900 + index * 120,
-      withTiming(1, { duration: 500, easing: TEMPO_EASING }),
+    dotAnim.value = withDelay(
+      500 + index * 120,
+      withTiming(1, { duration: 400, easing: TEMPO_EASING }),
     );
   }, []);
 
-  const thickness = 2.5 + branch.level * 4; // 2.5–6.5px
+  const level = branch?.level ?? 0.5;
+  const tint = branch?.tint ?? '#888780';
+  const thickness = 4 + level * 5;
+  const symbol = DOMAIN_SYMBOLS[route.name] ?? '\u25CF';
 
-  // Vertical segment — from split point upward in the shared trunk area
-  const splitY = TRUNK_BOTTOM - path.trunkSplit * (TRUNK_BOTTOM - TRUNK_TOP);
-  const vertSegmentTop = splitY;
-  const vertSegmentHeight = TRUNK_BOTTOM - splitY;
+  const pts = route.points.map(([xp, yp]) => [
+    (cw * xp) / 100,
+    (ch * yp) / 100,
+  ]);
 
-  const vertStyle = useAnimatedStyle(() => {
-    const progress = grow.value;
-    return {
-      position: 'absolute' as const,
-      left: '50%',
-      marginLeft: -thickness / 2,
-      top: `${(vertSegmentTop + vertSegmentHeight * (1 - progress)) * 100}%` as any,
-      height: `${vertSegmentHeight * progress * 100}%` as any,
-      width: thickness,
-      backgroundColor: branch.tint,
-      opacity: interpolate(progress, [0, 0.2, 1], [0, 0.4, 0.7 + branch.level * 0.3]),
-      borderRadius: thickness / 2,
-    };
-  });
-
-  // Diagonal segment — from split point up to the terminus position
-  // We approximate the curve with a rotated rectangle
-  const centerX = 50; // percent
-  const deltaX = path.xEnd - centerX; // how far left/right from center
-  const diagonalTop = TRUNK_TOP;
-  const diagonalBottom = splitY;
-  const diagonalHeight = diagonalBottom - diagonalTop;
-
-  // Calculate rotation angle for the diagonal
-  // We need to go deltaX% horizontally over diagonalHeight% vertically
-  const containerWidth = Dimensions.get('window').width - 32; // approximate padding
-  const pixelDeltaX = (deltaX / 100) * containerWidth;
-  const pixelDeltaY = diagonalHeight * CONTAINER_HEIGHT;
-  const angleRad = Math.atan2(pixelDeltaX, pixelDeltaY);
-  const angleDeg = (angleRad * 180) / Math.PI;
-  const diagonalLength = Math.sqrt(pixelDeltaX * pixelDeltaX + pixelDeltaY * pixelDeltaY);
-
-  const diagStyle = useAnimatedStyle(() => {
-    const progress = grow.value;
-    return {
-      position: 'absolute' as const,
-      left: '50%',
-      marginLeft: -thickness / 2,
-      top: `${splitY * 100}%` as any,
-      height: diagonalLength * progress,
-      width: thickness,
-      backgroundColor: branch.tint,
-      opacity: interpolate(progress, [0, 0.3, 1], [0, 0.3, 0.7 + branch.level * 0.3]),
-      borderRadius: thickness / 2,
-      transform: [
-        { rotate: `${angleDeg}deg` },
-      ],
-      transformOrigin: 'bottom center',
-    };
-  });
-
-  // Terminus dot
-  const dotStyle = useAnimatedStyle(() => {
-    const size = 8 + branch.level * 6;
-    return {
-      width: size,
-      height: size,
-      borderRadius: size / 2,
-      borderWidth: 2,
-      borderColor: branch.tint,
-      backgroundColor: 'transparent',
-      opacity: labelShow.value,
-    };
-  });
-
-  // Label
-  const labelStyle = useAnimatedStyle(() => ({
-    opacity: labelShow.value,
-  }));
-
-  const symbol = DOMAIN_SYMBOLS[branch.name] ?? '\u25CF';
-  const labelSide = path.side;
+  const totalSegs = pts.length - 1;
+  const labelIdx = route.labelEnd === 'start' ? 0 : pts.length - 1;
+  const isInterchangeX = (xp: number) => Math.abs(xp - 50) < 1;
 
   return (
     <>
-      {/* Shared trunk segment (colored) */}
-      <Animated.View style={vertStyle} />
+      {pts.slice(0, -1).map((pt, si) => (
+        <SegmentLine
+          key={`s${index}-${si}`}
+          x1={pt[0]} y1={pt[1]}
+          x2={pts[si + 1][0]} y2={pts[si + 1][1]}
+          thickness={thickness}
+          color={tint}
+          progress={lineAnim}
+          segIndex={si}
+          totalSegs={totalSegs}
+        />
+      ))}
 
-      {/* Diagonal spread segment */}
-      <Animated.View style={diagStyle} />
+      {pts.map((pt, pi) => (
+        <StationDot
+          key={`d${index}-${pi}`}
+          x={pt[0]} y={pt[1]}
+          color={tint}
+          isInterchange={isInterchangeX(route.points[pi][0])}
+          progress={dotAnim}
+        />
+      ))}
 
-      {/* Terminus — dot + label at top */}
-      <Animated.View style={[
-        styles.terminus,
-        {
-          left: `${path.xEnd}%`,
-          top: `${TRUNK_TOP * 100 - 2}%`,
-        },
-      ]}>
-        <Animated.View style={dotStyle} />
-        <Animated.View style={[
-          styles.terminusLabel,
-          labelSide === 'left' ? { alignItems: 'flex-end', right: 18 } : { alignItems: 'flex-start', left: 18 },
-          labelStyle,
-        ]}>
-          <TempoText variant="body" style={{ fontSize: 16, color: branch.tint }}>
-            {symbol}
-          </TempoText>
-          <TempoText variant="caption" color={branch.tint} style={styles.lineName} numberOfLines={2}>
-            {branch.name}
-          </TempoText>
-        </Animated.View>
-      </Animated.View>
+      <RouteLabel
+        x={pts[labelIdx][0]} y={pts[labelIdx][1]}
+        name={route.name}
+        symbol={symbol}
+        color={tint}
+        side={route.labelEnd}
+        progress={dotAnim}
+        containerWidth={cw}
+      />
     </>
   );
 }
 
+// ── Main component ──
+
 export function TempoTree({ score, branches }: TempoTreeProps) {
   const colors = useColors();
-  const trunkGrow = useSharedValue(0);
-  const rootGrow = useSharedValue(0);
+  const [cw, setCw] = useState(Dimensions.get('window').width - 48);
+  const ch = CONTAINER_HEIGHT;
 
+  const branchMap = useMemo(
+    () => new Map(branches.map((b) => [b.name, b])),
+    [branches],
+  );
+
+  const spineAnim = useSharedValue(0);
   useEffect(() => {
-    rootGrow.value = withTiming(1, { duration: 400, easing: TEMPO_EASING });
-    trunkGrow.value = withDelay(200, withTiming(1, { duration: 600, easing: TEMPO_EASING }));
+    spineAnim.value = withDelay(50, withTiming(1, { duration: 600, easing: TEMPO_EASING }));
   }, []);
 
-  // Shared trunk — grows up from root
-  const trunkStyle = useAnimatedStyle(() => ({
-    height: `${(TRUNK_BOTTOM - 0.50) * 100 * trunkGrow.value}%` as any,
-    opacity: interpolate(trunkGrow.value, [0, 0.3, 1], [0, 0.5, 0.8]),
-  }));
-
-  // Root dot
-  const rootDotStyle = useAnimatedStyle(() => ({
-    opacity: rootGrow.value,
-    transform: [{ scale: rootGrow.value }],
-  }));
-
-  // Root lines
-  const rootLineStyle = (angle: number, len: number) => useAnimatedStyle(() => ({
-    height: len * rootGrow.value,
-    opacity: interpolate(rootGrow.value, [0, 1], [0, 0.3]),
-    transform: [{ rotate: `${angle}deg` }],
-  }));
-
-  const rootLines = [
-    rootLineStyle(-35, 30), rootLineStyle(-55, 22), rootLineStyle(-15, 24),
-    rootLineStyle(35, 30), rootLineStyle(55, 22), rootLineStyle(15, 24),
-    rootLineStyle(-75, 18), rootLineStyle(75, 18),
-  ];
+  const spineStyle = useAnimatedStyle(() => {
+    const topY = (ch * INTERCHANGES[0][1]) / 100;
+    const botY = (ch * INTERCHANGES[INTERCHANGES.length - 1][1]) / 100;
+    return {
+      position: 'absolute' as const,
+      left: (cw * 50) / 100 - 1,
+      top: topY,
+      width: 2,
+      height: (botY - topY) * spineAnim.value,
+      backgroundColor: colors.border,
+      opacity: 0.35 * spineAnim.value,
+      borderRadius: 1,
+    };
+  });
 
   return (
-    <View style={styles.container}>
-      {/* Root system */}
-      <View style={[styles.rootOrigin, { bottom: ROOT_BOTTOM - 10 }]}>
-        {rootLines.map((rs, i) => (
-          <Animated.View
-            key={i}
-            style={[{ position: 'absolute', width: 1.5, borderRadius: 1, backgroundColor: colors.ink3 }, rs]}
-          />
-        ))}
-      </View>
+    <View
+      style={styles.container}
+      onLayout={(e) => setCw(e.nativeEvent.layout.width)}
+    >
+      {/* Interchange spine */}
+      <Animated.View style={spineStyle} />
 
-      {/* Root dot */}
-      <Animated.View style={[
-        styles.rootDot,
-        { backgroundColor: colors.ink3, bottom: ROOT_BOTTOM },
-        rootDotStyle,
-      ]} />
-
-      {/* Shared trunk segment */}
-      <Animated.View style={[
-        styles.trunk,
-        { backgroundColor: colors.ink3 },
-        trunkStyle,
-      ]} />
-
-      {/* Domain lines */}
-      {branches.map((b, i) => (
-        <SubwayLine
-          key={b.name}
-          branch={b}
-          path={LINE_PATHS[i % LINE_PATHS.length]}
+      {/* Routes */}
+      {ROUTE_DEFS.map((route, i) => (
+        <SubwayRoute
+          key={route.name}
+          route={route}
+          branch={branchMap.get(route.name)}
           index={i}
+          cw={cw}
+          ch={ch}
         />
       ))}
 
@@ -289,50 +360,6 @@ const styles = StyleSheet.create({
     position: 'relative',
     overflow: 'hidden',
   },
-
-  rootOrigin: {
-    position: 'absolute',
-    left: '50%',
-    alignItems: 'center',
-  },
-  rootDot: {
-    position: 'absolute',
-    left: '50%',
-    marginLeft: -5,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-
-  trunk: {
-    position: 'absolute',
-    left: '50%',
-    marginLeft: -2,
-    bottom: ROOT_BOTTOM + 10,
-    width: 4,
-    borderRadius: 2,
-  },
-
-  terminus: {
-    position: 'absolute',
-    marginLeft: -7,
-    marginTop: -7,
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 14,
-    height: 14,
-  },
-  terminusLabel: {
-    position: 'absolute',
-    top: -4,
-    width: 75,
-  },
-  lineName: {
-    fontSize: 10,
-    lineHeight: 13,
-    marginTop: 1,
-  },
-
   scoreRow: {
     position: 'absolute',
     bottom: spacing.xs,
