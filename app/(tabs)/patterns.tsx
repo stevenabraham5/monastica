@@ -239,9 +239,9 @@ export default function PatternsScreen() {
       >
         {/* Header */}
         <EnterView delay={staggerDelays[0]}>
-          <TempoText variant="heading">Patterns</TempoText>
+          <TempoText variant="heading">Adapt</TempoText>
           <TempoText variant="caption" color={colors.ink3} style={{ marginTop: spacing.xs }}>
-            What your week is telling you
+            Where you go to grow
           </TempoText>
         </EnterView>
 
