@@ -9,12 +9,28 @@ import { useColors } from '../../constants/colors';
 import { spacing } from '../../constants/spacing';
 import { staggerDelays } from '../../constants/motion';
 import { useLifeModel } from '../../store/lifeModel';
+import { useVoiceInput } from '../../hooks/useVoiceInput';
 
 export default function ReflectionScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { reflections, addReflection } = useLifeModel();
   const [text, setText] = useState('');
+
+  const submitReflection = (content: string) => {
+    if (!content.trim()) return;
+    const now = new Date();
+    addReflection({
+      id: `r-${Date.now()}`,
+      date: now.toLocaleDateString('en-US', { month: 'long', day: 'numeric' }),
+      text: content.trim(),
+    });
+    setText('');
+  };
+
+  const voice = useVoiceInput((spokenText) => {
+    setText((prev) => (prev ? prev + ' ' : '') + spokenText);
+  });
 
   return (
     <View style={[styles.container, { backgroundColor: colors.ground }]}>
@@ -45,16 +61,10 @@ export default function ReflectionScreen() {
             style={styles.textarea}
             value={text}
             onChangeText={setText}
-            onSubmitEditing={() => {
-              if (!text.trim()) return;
-              const now = new Date();
-              addReflection({
-                id: `r-${Date.now()}`,
-                date: now.toLocaleDateString('en-US', { month: 'long', day: 'numeric' }),
-                text: text.trim(),
-              });
-              setText('');
-            }}
+            onSubmit={submitReflection}
+            showVoice={voice.isAvailable}
+            onVoicePress={voice.toggle}
+            isListening={voice.isListening}
           />
         </EnterView>
 

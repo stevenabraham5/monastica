@@ -7,7 +7,65 @@ import { EnterView } from '../../components/EnterView';
 import { useColors } from '../../constants/colors';
 import { spacing } from '../../constants/spacing';
 import { staggerDelays } from '../../constants/motion';
-import { useAgentStore, AgentAction } from '../../store/agentStore';
+import { useAgentStore, AgentAction, personas, PersonaId } from '../../store/agentStore';
+
+function PersonaChip({
+  id,
+  active,
+  onPress,
+}: {
+  id: PersonaId;
+  active: boolean;
+  onPress: () => void;
+}) {
+  const colors = useColors();
+  const persona = personas[id];
+
+  return (
+    <Pressable
+      onPress={onPress}
+      style={[
+        styles.personaChip,
+        {
+          backgroundColor: active ? colors.agent : colors.surface,
+          borderColor: active ? colors.agent : colors.border,
+        },
+      ]}
+      accessibilityRole="button"
+      accessibilityLabel={`${persona.name}${active ? ', selected' : ''}`}
+      accessibilityState={{ selected: active }}
+    >
+      <TempoText
+        variant="caption"
+        color={active ? '#FFFFFF' : colors.ink2}
+      >
+        {persona.name}
+      </TempoText>
+    </Pressable>
+  );
+}
+
+function PersonaDetail({ id }: { id: PersonaId }) {
+  const colors = useColors();
+  const persona = personas[id];
+
+  return (
+    <EnterView distance={8}>
+      <View style={[styles.personaDetail, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <TempoText variant="body" color={colors.ink2}>
+          {persona.philosophy}
+        </TempoText>
+        <View style={styles.behaviorList}>
+          {persona.behaviors.map((b) => (
+            <TempoText key={b} variant="caption" color={colors.ink3}>
+              • {b}
+            </TempoText>
+          ))}
+        </View>
+      </View>
+    </EnterView>
+  );
+}
 
 function StatTile({ value, label }: { value: string; label: string }) {
   const colors = useColors();
@@ -64,7 +122,7 @@ function ActivityItem({
 export default function AgentScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { activeSince, stats: agentStats, escalations, activityFeed, resolveEscalation } = useAgentStore();
+  const { activeSince, stats: agentStats, escalations, activityFeed, resolveEscalation, persona, setPersona } = useAgentStore();
 
   const stats = [
     { value: `${agentStats.hoursReclaimed}h`, label: 'Reclaimed' },
@@ -90,8 +148,26 @@ export default function AgentScreen() {
           </TempoText>
         </EnterView>
 
+        {/* Persona selector */}
+        <EnterView delay={staggerDelays[1]} style={styles.personaSection}>
+          <TempoText variant="label" color={colors.ink3} style={styles.sectionLabel}>
+            AGENT MODE
+          </TempoText>
+          <View style={styles.personaRow}>
+            {(['guardian', 'pragmatist', 'delegator'] as const).map((id) => (
+              <PersonaChip
+                key={id}
+                id={id}
+                active={persona === id}
+                onPress={() => setPersona(id)}
+              />
+            ))}
+          </View>
+          <PersonaDetail id={persona} />
+        </EnterView>
+
         {/* Stats row */}
-        <EnterView delay={staggerDelays[1]} style={styles.statsRow}>
+        <EnterView delay={staggerDelays[2]} style={styles.statsRow}>
           {stats.map((stat) => (
             <StatTile key={stat.label} value={stat.value} label={stat.label} />
           ))}
@@ -99,7 +175,7 @@ export default function AgentScreen() {
 
         {/* Escalations */}
         {escalations.length > 0 && (
-          <EnterView delay={staggerDelays[2]} style={styles.escalationSection}>
+          <EnterView delay={staggerDelays[3]} style={styles.escalationSection}>
             <TempoText variant="label" color={colors.ink3} style={styles.sectionLabel}>
               NEEDS YOUR DECISION
             </TempoText>
@@ -159,7 +235,7 @@ export default function AgentScreen() {
         )}
 
         {/* Activity feed */}
-        <EnterView delay={staggerDelays[3]} style={styles.feedSection}>
+        <EnterView delay={staggerDelays[4]} style={styles.feedSection}>
           <TempoText variant="label" color={colors.ink3} style={styles.sectionLabel}>
             RECENT ACTIVITY
           </TempoText>
@@ -250,5 +326,28 @@ const styles = StyleSheet.create({
   },
   detailText: {
     lineHeight: 20,
+  },
+  personaSection: {
+    marginTop: spacing.xl,
+  },
+  personaRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  personaChip: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  personaDetail: {
+    borderRadius: 12,
+    padding: spacing.base,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  behaviorList: {
+    marginTop: spacing.sm,
+    gap: spacing.xs,
   },
 });

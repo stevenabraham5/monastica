@@ -13,6 +13,7 @@ import { spacing } from '../../constants/spacing';
 import { staggerDelays } from '../../constants/motion';
 import { useLifeModel } from '../../store/lifeModel';
 import { useAgentStore } from '../../store/agentStore';
+import { useVoiceInput } from '../../hooks/useVoiceInput';
 
 function formatDate(): string {
   const now = new Date();
@@ -27,6 +28,10 @@ export default function TodayScreen() {
   const router = useRouter();
   const { domains, intention, setIntention } = useLifeModel();
   const hoursReclaimed = useAgentStore((s) => s.stats.hoursReclaimed);
+
+  const voice = useVoiceInput((text) => {
+    setIntention((intention ? intention + ' ' : '') + text);
+  });
 
   return (
     <View style={[styles.container, { backgroundColor: colors.ground }]}>
@@ -60,6 +65,10 @@ export default function TodayScreen() {
             multiline
             value={intention}
             onChangeText={setIntention}
+            onSubmit={(text) => setIntention(text)}
+            showVoice={voice.isAvailable}
+            onVoicePress={voice.toggle}
+            isListening={voice.isListening}
           />
         </EnterView>
 
