@@ -20,6 +20,7 @@ import { useColors } from '../constants/colors';
 interface ReflectHarborProps {
   checkinsToday: number;
   latestFeeling: string | null;
+  fullScreen?: boolean;
 }
 
 const FEELING_TINTS: Record<string, string> = {
@@ -70,12 +71,12 @@ function BuoyIcon({ symbol, tint, x, y, delay }: {
   );
 }
 
-export function ReflectHarbor({ checkinsToday, latestFeeling }: ReflectHarborProps) {
+export function ReflectHarbor({ checkinsToday, latestFeeling, fullScreen }: ReflectHarborProps) {
   const colors = useColors();
   const waterColor = (latestFeeling && FEELING_TINTS[latestFeeling]) || '#7EB8D4';
 
   return (
-    <View style={[styles.container, { backgroundColor: waterColor + '0A' }]}>
+    <View style={[styles.container, fullScreen && styles.containerFull, { backgroundColor: waterColor + '0A' }]}>
       {/* Sky */}
       <View style={[styles.sky, { backgroundColor: waterColor + '08' }]} />
 
@@ -137,6 +138,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
     borderRadius: 16,
+  },
+  containerFull: {
+    height: '100%',
+    borderRadius: 0,
   },
   sky: {
     position: 'absolute',

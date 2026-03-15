@@ -123,23 +123,23 @@ export function ActTidePool({ actionCount, completedToday, fullScreen }: ActTide
 
       {/* Sun — hazy through mist */}
       <View style={styles.sun}>
-        <View style={[styles.sunBody, { backgroundColor: '#E8C84A', opacity: 0.35 }]} />
-        <View style={[styles.sunGlow, { backgroundColor: '#E8C84A', opacity: 0.12 }]} />
+        <View style={[styles.sunBody, { backgroundColor: '#F0C840', opacity: 0.55 }]} />
+        <View style={[styles.sunGlow, { backgroundColor: '#F0C840', opacity: 0.22 }]} />
       </View>
 
       {/* Clouds */}
       <View style={styles.cloud1}>
-        <View style={[styles.cloudPuff, { width: 38, height: 16, backgroundColor: '#fff', opacity: 0.40 }]} />
-        <View style={[styles.cloudPuff, { width: 26, height: 12, left: 28, top: -3, backgroundColor: '#fff', opacity: 0.32 }]} />
+        <View style={[styles.cloudPuff, { width: 54, height: 22, backgroundColor: '#fff', opacity: 0.60 }]} />
+        <View style={[styles.cloudPuff, { width: 36, height: 16, left: 38, top: -3, backgroundColor: '#fff', opacity: 0.50 }]} />
       </View>
       <View style={styles.cloud2}>
-        <View style={[styles.cloudPuff, { width: 32, height: 14, backgroundColor: '#fff', opacity: 0.35 }]} />
-        <View style={[styles.cloudPuff, { width: 20, height: 10, left: 22, top: -2, backgroundColor: '#fff', opacity: 0.28 }]} />
+        <View style={[styles.cloudPuff, { width: 46, height: 18, backgroundColor: '#fff', opacity: 0.55 }]} />
+        <View style={[styles.cloudPuff, { width: 28, height: 14, left: 32, top: -2, backgroundColor: '#fff', opacity: 0.45 }]} />
       </View>
 
       {/* Fog banks */}
-      <Animated.View style={[styles.fog1, { backgroundColor: '#D0D8DC', opacity: 0.35 }, fogStyle]} />
-      <Animated.View style={[styles.fog2, { backgroundColor: '#C8D0D4', opacity: 0.28 }, fogStyle]} />
+      <Animated.View style={[styles.fog1, { backgroundColor: '#D0D8DC', opacity: 0.50 }, fogStyle]} />
+      <Animated.View style={[styles.fog2, { backgroundColor: '#C8D0D4', opacity: 0.42 }, fogStyle]} />
 
       {/* Sea stack — distant pillar of rock */}
       <View style={[styles.seaStack, { backgroundColor: slate, opacity: 0.50 }]} />
@@ -147,21 +147,21 @@ export function ActTidePool({ actionCount, completedToday, fullScreen }: ActTide
 
       {/* Lighthouse */}
       <View style={styles.lighthouse}>
-        <View style={[styles.lighthouseBody, { backgroundColor: '#D8D0C8', opacity: 0.65 }]} />
-        <View style={[styles.lighthouseStripe, { backgroundColor: '#8B4040', opacity: 0.55 }]} />
-        <View style={[styles.lighthouseStripe2, { backgroundColor: '#8B4040', opacity: 0.55 }]} />
-        <View style={[styles.lighthouseTop, { backgroundColor: slate, opacity: 0.60 }]} />
-        <View style={[styles.lighthouseLight, { backgroundColor: '#E8D88C', opacity: 0.65 }]} />
+        <View style={[styles.lighthouseBody, { backgroundColor: '#E8E0D4', opacity: 0.80 }]} />
+        <View style={[styles.lighthouseStripe, { backgroundColor: '#C04040', opacity: 0.72 }]} />
+        <View style={[styles.lighthouseStripe2, { backgroundColor: '#C04040', opacity: 0.72 }]} />
+        <View style={[styles.lighthouseTop, { backgroundColor: slate, opacity: 0.75 }]} />
+        <View style={[styles.lighthouseLight, { backgroundColor: '#F0E060', opacity: 0.80 }]} />
       </View>
 
       {/* Rocky shelf — jagged horizon */}
-      <View style={[styles.shelfBase, { backgroundColor: slate, opacity: 0.50 }]} />
-      <View style={[styles.shelfJag1, { backgroundColor: slate, opacity: 0.45 }]} />
-      <View style={[styles.shelfJag2, { backgroundColor: slate, opacity: 0.42 }]} />
-      <View style={[styles.shelfJag3, { backgroundColor: slate, opacity: 0.48 }]} />
+      <View style={[styles.shelfBase, { backgroundColor: slate, opacity: 0.65 }]} />
+      <View style={[styles.shelfJag1, { backgroundColor: slate, opacity: 0.60 }]} />
+      <View style={[styles.shelfJag2, { backgroundColor: slate, opacity: 0.58 }]} />
+      <View style={[styles.shelfJag3, { backgroundColor: slate, opacity: 0.62 }]} />
 
       {/* Tide pool water */}
-      <View style={[styles.poolWater, { backgroundColor: seafoam + '20' }]} />
+      <View style={[styles.poolWater, { backgroundColor: seafoam + '35' }]} />
 
       {/* Pool surface lines */}
       <View style={[styles.poolLine, { top: '56%', left: '20%', width: '25%', backgroundColor: seafoam + '28' }]} />
@@ -220,15 +220,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   sunBody: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
   },
   sunGlow: {
     position: 'absolute',
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
   },
   // Clouds
   cloud1: {

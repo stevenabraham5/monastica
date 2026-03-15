@@ -28,17 +28,18 @@ import { spacing } from '../constants/spacing';
 interface ReflectOceanProps {
   checkinsToday: number;
   latestFeeling: string | null;
+  fullScreen?: boolean;
 }
 
 const FEELING_TINTS: Record<string, string> = {
-  rested:    '#7EB8D4',
-  focused:   '#6EA8C8',
-  steady:    '#7CAEC0',
-  energised: '#5CA8D0',
-  scattered: '#8BA4B0',
-  drained:   '#94A0AA',
-  flat:      '#9EAAB0',
-  restless:  '#7898AA',
+  rested:    '#4DB8E8',
+  focused:   '#3A9AD4',
+  steady:    '#4CAED8',
+  energised: '#2CB0E8',
+  scattered: '#6B94B8',
+  drained:   '#7890A0',
+  flat:      '#8898A4',
+  restless:  '#5888AA',
 };
 
 // Domain symbols that float on the water — matching GoalCard symbols
@@ -89,7 +90,7 @@ function FloatingIcon({ symbol, tint, x, yPos, delay }: {
 
   return (
     <Animated.View style={[styles.floatingIcon, { left: x as any, top: yPos as any }, style]}>
-      <TempoText variant="body" style={{ fontSize: 26, color: tint }}>{symbol}</TempoText>
+      <TempoText variant="body" style={{ fontSize: 32, color: tint }}>{symbol}</TempoText>
     </Animated.View>
   );
 }
@@ -145,14 +146,14 @@ const FEELING_ATMOSPHERE: Record<string, {
   cloudColor: string;
   intensity: number;
 }> = {
-  rested:    { type: 'calm',      cloudColor: '#D8E8F0', intensity: 0.5 },
-  steady:    { type: 'calm',      cloudColor: '#D0E0E8', intensity: 0.45 },
-  focused:   { type: 'bright',    cloudColor: '#E8E0C8', intensity: 0.6 },
-  energised: { type: 'bright',    cloudColor: '#E8D8A0', intensity: 0.65 },
-  scattered: { type: 'turbulent', cloudColor: '#B8C0C8', intensity: 0.55 },
-  restless:  { type: 'turbulent', cloudColor: '#A8B0B8', intensity: 0.5 },
-  drained:   { type: 'muted',     cloudColor: '#C0C4C8', intensity: 0.5 },
-  flat:      { type: 'muted',     cloudColor: '#B8BCC0', intensity: 0.45 },
+  rested:    { type: 'calm',      cloudColor: '#C0E0F0', intensity: 0.7 },
+  steady:    { type: 'calm',      cloudColor: '#B8D8E8', intensity: 0.65 },
+  focused:   { type: 'bright',    cloudColor: '#F0E0A0', intensity: 0.8 },
+  energised: { type: 'bright',    cloudColor: '#F0D880', intensity: 0.85 },
+  scattered: { type: 'turbulent', cloudColor: '#8898A8', intensity: 0.75 },
+  restless:  { type: 'turbulent', cloudColor: '#7888A0', intensity: 0.7 },
+  drained:   { type: 'muted',     cloudColor: '#A0A8B0', intensity: 0.7 },
+  flat:      { type: 'muted',     cloudColor: '#98A0A8', intensity: 0.65 },
 };
 
 function FeelingAtmosphere({ feeling }: { feeling: string | null }) {
@@ -208,7 +209,7 @@ function FeelingAtmosphere({ feeling }: { feeling: string | null }) {
   }));
 
   const rayStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(pulse.value, [0, 1], [0.08, 0.22]),
+    opacity: interpolate(pulse.value, [0, 1], [0.15, 0.40]),
   }));
 
   if (!feeling) return null;
@@ -220,46 +221,50 @@ function FeelingAtmosphere({ feeling }: { feeling: string | null }) {
   return (
     <Animated.View style={[StyleSheet.absoluteFill, containerStyle]} pointerEvents="none">
       {/* Clouds — all types get clouds but different amounts/speeds */}
-      <Animated.View style={[atmosStyles.cloud, { top: '6%', left: '8%', width: 52, height: 20, backgroundColor: cc, opacity: i, borderRadius: 12 }, cloud1Style]} />
-      <Animated.View style={[atmosStyles.cloud, { top: '4%', right: '20%', width: 44, height: 16, backgroundColor: cc, opacity: i * 0.8, borderRadius: 10 }, cloud2Style]} />
-      <Animated.View style={[atmosStyles.cloud, { top: '12%', left: '40%', width: 36, height: 14, backgroundColor: cc, opacity: i * 0.65, borderRadius: 9 }, cloud3Style]} />
+      <Animated.View style={[atmosStyles.cloud, { top: '4%', left: '5%', width: 80, height: 30, backgroundColor: cc, opacity: i, borderRadius: 16 }, cloud1Style]} />
+      <Animated.View style={[atmosStyles.cloud, { top: '2%', right: '15%', width: 68, height: 24, backgroundColor: cc, opacity: i * 0.85, borderRadius: 14 }, cloud2Style]} />
+      <Animated.View style={[atmosStyles.cloud, { top: '10%', left: '35%', width: 56, height: 22, backgroundColor: cc, opacity: i * 0.7, borderRadius: 12 }, cloud3Style]} />
 
       {/* Type-specific effects */}
       {atmo.type === 'bright' && (
         <>
           {/* Sun rays — diagonal beams from upper right */}
-          <Animated.View style={[atmosStyles.ray, { top: '2%', right: '10%', width: 3, height: 60, backgroundColor: '#E8D08A', transform: [{ rotate: '25deg' }] }, rayStyle]} />
-          <Animated.View style={[atmosStyles.ray, { top: '0%', right: '22%', width: 2, height: 50, backgroundColor: '#E8D08A', transform: [{ rotate: '18deg' }] }, rayStyle]} />
-          <Animated.View style={[atmosStyles.ray, { top: '5%', right: '5%', width: 2.5, height: 45, backgroundColor: '#E8D08A', transform: [{ rotate: '32deg' }] }, rayStyle]} />
+          <Animated.View style={[atmosStyles.ray, { top: '0%', right: '8%', width: 5, height: 100, backgroundColor: '#F0D060', transform: [{ rotate: '25deg' }] }, rayStyle]} />
+          <Animated.View style={[atmosStyles.ray, { top: '-2%', right: '20%', width: 4, height: 80, backgroundColor: '#F0D060', transform: [{ rotate: '18deg' }] }, rayStyle]} />
+          <Animated.View style={[atmosStyles.ray, { top: '3%', right: '3%', width: 4, height: 70, backgroundColor: '#F0D060', transform: [{ rotate: '32deg' }] }, rayStyle]} />
+          <Animated.View style={[atmosStyles.ray, { top: '-3%', right: '14%', width: 3, height: 90, backgroundColor: '#F0D060', transform: [{ rotate: '12deg' }] }, rayStyle]} />
           {/* Warm glow */}
-          <Animated.View style={[atmosStyles.glow, { top: '-5%', right: '5%', width: 80, height: 80, backgroundColor: '#E8C84A', borderRadius: 40 }, rayStyle]} />
+          <Animated.View style={[atmosStyles.glow, { top: '-8%', right: '2%', width: 120, height: 120, backgroundColor: '#F0C840', borderRadius: 60 }, rayStyle]} />
         </>
       )}
 
       {atmo.type === 'muted' && (
         <>
           {/* Fog banks — wider, lower, more opaque */}
-          <Animated.View style={[atmosStyles.cloud, { top: '20%', left: -20, width: '70%', height: 18, backgroundColor: cc, opacity: i * 0.7, borderRadius: 9 }, cloud1Style]} />
-          <Animated.View style={[atmosStyles.cloud, { top: '30%', right: -10, width: '55%', height: 14, backgroundColor: cc, opacity: i * 0.6, borderRadius: 7 }, cloud2Style]} />
+          <Animated.View style={[atmosStyles.cloud, { top: '18%', left: -20, width: '75%', height: 28, backgroundColor: cc, opacity: i * 0.8, borderRadius: 14 }, cloud1Style]} />
+          <Animated.View style={[atmosStyles.cloud, { top: '28%', right: -10, width: '60%', height: 22, backgroundColor: cc, opacity: i * 0.7, borderRadius: 11 }, cloud2Style]} />
+          <Animated.View style={[atmosStyles.cloud, { top: '35%', left: '10%', width: '50%', height: 18, backgroundColor: cc, opacity: i * 0.5, borderRadius: 9 }, cloud3Style]} />
         </>
       )}
 
       {atmo.type === 'turbulent' && (
         <>
           {/* Extra clouds — darker, more scattered */}
-          <Animated.View style={[atmosStyles.cloud, { top: '18%', left: '5%', width: 28, height: 12, backgroundColor: cc, opacity: i * 0.7, borderRadius: 7 }, cloud2Style]} />
-          <Animated.View style={[atmosStyles.cloud, { top: '8%', right: '8%', width: 32, height: 14, backgroundColor: cc, opacity: i * 0.6, borderRadius: 8 }, cloud3Style]} />
+          <Animated.View style={[atmosStyles.cloud, { top: '16%', left: '3%', width: 48, height: 20, backgroundColor: cc, opacity: i * 0.8, borderRadius: 10 }, cloud2Style]} />
+          <Animated.View style={[atmosStyles.cloud, { top: '6%', right: '5%', width: 52, height: 22, backgroundColor: cc, opacity: i * 0.7, borderRadius: 12 }, cloud3Style]} />
           {/* Extra wave lines */}
-          <View style={[atmosStyles.extraWave, { top: '48%', left: '5%', width: '40%', backgroundColor: cc, opacity: 0.15 }]} />
-          <View style={[atmosStyles.extraWave, { top: '58%', left: '35%', width: '45%', backgroundColor: cc, opacity: 0.12 }]} />
+          <View style={[atmosStyles.extraWave, { top: '46%', left: '3%', width: '45%', backgroundColor: cc, opacity: 0.25, height: 2 }]} />
+          <View style={[atmosStyles.extraWave, { top: '56%', left: '30%', width: '50%', backgroundColor: cc, opacity: 0.2, height: 2 }]} />
+          <View style={[atmosStyles.extraWave, { top: '66%', left: '10%', width: '40%', backgroundColor: cc, opacity: 0.18, height: 1.5 }]} />
         </>
       )}
 
       {atmo.type === 'calm' && (
         <>
           {/* Soft highlight on water */}
-          <View style={[atmosStyles.waterGlow, { top: '45%', left: '30%', width: 60, height: 6, backgroundColor: '#fff', opacity: 0.12, borderRadius: 3 }]} />
-          <View style={[atmosStyles.waterGlow, { top: '55%', left: '50%', width: 40, height: 4, backgroundColor: '#fff', opacity: 0.08, borderRadius: 2 }]} />
+          <View style={[atmosStyles.waterGlow, { top: '44%', left: '25%', width: 90, height: 8, backgroundColor: '#fff', opacity: 0.2, borderRadius: 4 }]} />
+          <View style={[atmosStyles.waterGlow, { top: '54%', left: '45%', width: 60, height: 6, backgroundColor: '#fff', opacity: 0.15, borderRadius: 3 }]} />
+          <View style={[atmosStyles.waterGlow, { top: '62%', left: '15%', width: 70, height: 5, backgroundColor: '#fff', opacity: 0.12, borderRadius: 2.5 }]} />
         </>
       )}
     </Animated.View>
@@ -287,7 +292,7 @@ const atmosStyles = StyleSheet.create({
   },
 });
 
-export function ReflectOcean({ checkinsToday, latestFeeling }: ReflectOceanProps) {
+export function ReflectOcean({ checkinsToday, latestFeeling, fullScreen }: ReflectOceanProps) {
   const colors = useColors();
   const waterColor = (latestFeeling && FEELING_TINTS[latestFeeling]) || '#7EB8D4';
 
@@ -308,44 +313,44 @@ export function ReflectOcean({ checkinsToday, latestFeeling }: ReflectOceanProps
   }));
 
   return (
-    <View style={[styles.container, { backgroundColor: waterColor + '08' }]}>
+    <View style={[styles.container, fullScreen && styles.containerFull, { backgroundColor: waterColor + '18' }]}>
       {/* Sky */}
-      <View style={[styles.sky, { backgroundColor: waterColor + '06' }]} />
+      <View style={[styles.sky, { backgroundColor: waterColor + '12' }]} />
 
       {/* Horizon line */}
-      <Animated.View style={[styles.horizon, { backgroundColor: waterColor + '35' }, horizonStyle]} />
+      <Animated.View style={[styles.horizon, { backgroundColor: waterColor + '55' }, horizonStyle]} />
 
       {/* Water surface */}
-      <View style={[styles.water, { backgroundColor: waterColor + '18' }]} />
+      <View style={[styles.water, { backgroundColor: waterColor + '30' }]} />
 
       {/* Wave lines — thin horizontal strokes suggesting movement */}
-      <View style={[styles.waveLine, styles.wave1, { backgroundColor: waterColor + '25' }]} />
-      <View style={[styles.waveLine, styles.wave2, { backgroundColor: waterColor + '20' }]} />
-      <View style={[styles.waveLine, styles.wave3, { backgroundColor: waterColor + '18' }]} />
-      <View style={[styles.waveLine, styles.wave4, { backgroundColor: waterColor + '15' }]} />
+      <View style={[styles.waveLine, styles.wave1, { backgroundColor: waterColor + '40' }]} />
+      <View style={[styles.waveLine, styles.wave2, { backgroundColor: waterColor + '35' }]} />
+      <View style={[styles.waveLine, styles.wave3, { backgroundColor: waterColor + '30' }]} />
+      <View style={[styles.waveLine, styles.wave4, { backgroundColor: waterColor + '28' }]} />
 
       {/* ── Landforms ── */}
 
       {/* Main island — right side, with cliff face */}
-      <View style={[styles.landmass, { backgroundColor: colors.ink3, opacity: 0.45 }]}>
-        <View style={[styles.landPeak, { backgroundColor: colors.ink3, opacity: 0.45 }]} />
+      <View style={[styles.landmass, { backgroundColor: '#5A7060', opacity: 0.65 }]}>
+        <View style={[styles.landPeak, { backgroundColor: '#5A7060', opacity: 0.65 }]} />
       </View>
       {/* Cliff face on main island — steep left edge */}
-      <View style={[styles.cliffFace, { backgroundColor: colors.ink3, opacity: 0.38 }]} />
+      <View style={[styles.cliffFace, { backgroundColor: '#4A6050', opacity: 0.58 }]} />
 
       {/* Small island — far left, low */}
-      <View style={[styles.islandSmallLeft, { backgroundColor: colors.ink3, opacity: 0.35 }]} />
+      <View style={[styles.islandSmallLeft, { backgroundColor: '#5A7060', opacity: 0.55 }]} />
 
       {/* Distant island — center-left, on horizon */}
-      <View style={[styles.islandDistant, { backgroundColor: colors.ink3, opacity: 0.25 }]} />
+      <View style={[styles.islandDistant, { backgroundColor: '#6A8070', opacity: 0.45 }]} />
 
       {/* Rocky outcrop — far right, partially off-screen */}
-      <View style={[styles.rockRight, { backgroundColor: colors.ink3, opacity: 0.42 }]} />
-      <View style={[styles.rockRightPeak, { backgroundColor: colors.ink3, opacity: 0.42 }]} />
+      <View style={[styles.rockRight, { backgroundColor: '#5A7060', opacity: 0.60 }]} />
+      <View style={[styles.rockRightPeak, { backgroundColor: '#5A7060', opacity: 0.60 }]} />
 
       {/* Cliff promontory — left foreground */}
-      <View style={[styles.cliffLeft, { backgroundColor: colors.ink3, opacity: 0.30 }]} />
-      <View style={[styles.cliffLeftTop, { backgroundColor: colors.ink3, opacity: 0.30 }]} />
+      <View style={[styles.cliffLeft, { backgroundColor: '#4A6050', opacity: 0.50 }]} />
+      <View style={[styles.cliffLeftTop, { backgroundColor: '#4A6050', opacity: 0.50 }]} />
 
       {/* Ship — bobbing left of center */}
       <BobbingShip waterColor={waterColor} />
@@ -381,6 +386,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
     borderRadius: 16,
+  },
+  containerFull: {
+    height: '100%',
+    borderRadius: 0,
   },
   sky: {
     position: 'absolute',

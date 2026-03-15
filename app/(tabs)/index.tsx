@@ -1,5 +1,13 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, ScrollView, StyleSheet, Pressable, ActivityIndicator, Modal } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withSequence,
+  withTiming,
+  Easing,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
@@ -129,6 +137,43 @@ function AgentRow({ title, subtitle, tint, onTap, agentResponse }: {
   );
 }
 
+// ── Check-in button — warm animated pill ──
+
+function CheckInButton({ onPress, selectedFeeling }: { onPress: () => void; selectedFeeling: string | null }) {
+  const colors = useColors();
+  const breathe = useSharedValue(0);
+
+  useEffect(() => {
+    breathe.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 2400, easing: Easing.inOut(Easing.sin) }),
+        withTiming(0, { duration: 2400, easing: Easing.inOut(Easing.sin) }),
+      ),
+      -1,
+    );
+  }, []);
+
+  const glowStyle = useAnimatedStyle(() => ({
+    opacity: 0.25 + breathe.value * 0.2,
+    transform: [{ scale: 1 + breathe.value * 0.08 }],
+  }));
+
+  const label = selectedFeeling
+    ? `Feeling ${selectedFeeling}`
+    : 'How are you right now?';
+
+  return (
+    <Pressable onPress={onPress} accessibilityRole="button" style={styles.checkinOuter}>
+      <Animated.View style={[styles.checkinGlow, { backgroundColor: colors.accent }, glowStyle]} />
+      <View style={[styles.checkinPill, { backgroundColor: colors.accent }]}>
+        <TempoText variant="body" color="#FFFFFF" style={{ fontWeight: '600', letterSpacing: 0.3 }}>
+          {label}
+        </TempoText>
+      </View>
+    </Pressable>
+  );
+}
+
 // ── Main screen ──
 
 export default function NowScreen() {
@@ -206,6 +251,12 @@ export default function NowScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.reflectGround }]}>
       <StatusBar style="dark" />
+
+      {/* Full-screen scene background */}
+      <View style={StyleSheet.absoluteFill}>
+        <ReflectSceneCarousel checkinsToday={checkinsToday} latestFeeling={selectedFeeling} fullScreen />
+      </View>
+
       <ScrollView
         contentContainerStyle={[
           styles.content,
@@ -214,17 +265,12 @@ export default function NowScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Time of day — tip is tappable to open feeling check-in */}
+        {/* Greeting + settings */}
         <EnterView delay={staggerDelays[0]}>
           <View style={styles.headerRow}>
-            <Pressable onPress={() => setFeelingModalOpen(true)} accessibilityRole="button">
-              <TempoText variant="body" color={colors.ink2}>
-                {timeCtx.greeting} {'\u00B7'}{' '}
-                <TempoText variant="body" color={colors.accent} style={{ textDecorationLine: 'underline' }}>
-                  How are you right now?
-                </TempoText>
-              </TempoText>
-            </Pressable>
+            <TempoText variant="body" color={colors.ink2}>
+              {timeCtx.greeting}
+            </TempoText>
             <Pressable
               onPress={() => router.push('/settings')}
               accessibilityRole="button"
@@ -235,25 +281,26 @@ export default function NowScreen() {
           </View>
         </EnterView>
 
-        {/* Ocean hero — ripples per check-in */}
-        <EnterView delay={staggerDelays[0]} style={styles.section}>
-          <ReflectSceneCarousel checkinsToday={checkinsToday} latestFeeling={selectedFeeling} />
+        {/* Check-in button — warm, animated, inviting */}
+        <EnterView delay={staggerDelays[0]} style={{ marginTop: spacing.lg }}>
+          <CheckInButton onPress={() => setFeelingModalOpen(true)} selectedFeeling={selectedFeeling} />
         </EnterView>
 
         {/* Tempo index */}
         <EnterView delay={staggerDelays[0]} style={styles.section}>
-          <View style={styles.tempoHeader}>
-            <TempoText variant="label" color={colors.ink3}>TEMPO</TempoText>
-            <TempoText variant="heading" color={colors.accent}>{tempoScore}%</TempoText>
-          </View>
-          {!domains.some((d) => d.subjectiveLevel != null) && (
-            <TempoText variant="caption" color={colors.ink2} style={{ marginBottom: spacing.md }}>
-              Tap a domain to set how it feels right now.
-            </TempoText>
-          )}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
+          <View style={styles.contentCard}>
+            <View style={styles.tempoHeader}>
+              <TempoText variant="label" color={colors.ink3}>TEMPO</TempoText>
+              <TempoText variant="heading" color={colors.accent}>{tempoScore}%</TempoText>
+            </View>
+            {!domains.some((d) => d.subjectiveLevel != null) && (
+              <TempoText variant="caption" color={colors.ink2} style={{ marginBottom: spacing.md }}>
+                Tap a domain to set how it feels right now.
+              </TempoText>
+            )}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.pulseRow}
           >
             {domains.map((d, i) => (
@@ -269,6 +316,7 @@ export default function NowScreen() {
               />
             ))}
           </ScrollView>
+          </View>
         </EnterView>
 
         {/* Reflect — single button that expands to feeling chips + unified input */}
@@ -373,6 +421,11 @@ const styles = StyleSheet.create({
   section: {
     marginTop: spacing['2xl'],
   },
+  contentCard: {
+    backgroundColor: 'rgba(250, 250, 248, 0.88)',
+    borderRadius: 16,
+    padding: spacing.lg,
+  },
   sectionLabel: {
     marginBottom: spacing.sm,
   },
@@ -402,6 +455,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     borderRadius: 16,
     borderWidth: 1,
+    alignItems: 'center',
+  },
+  checkinOuter: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkinGlow: {
+    position: 'absolute',
+    width: 240,
+    height: 52,
+    borderRadius: 26,
+  },
+  checkinPill: {
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing['2xl'],
+    borderRadius: 24,
     alignItems: 'center',
   },
   modalOverlay: {

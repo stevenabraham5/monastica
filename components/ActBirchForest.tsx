@@ -124,19 +124,19 @@ export function ActBirchForest({ actionCount, completedToday, fullScreen }: ActB
 
       {/* Sun — pale winter sun */}
       <View style={styles.sun}>
-        <View style={[styles.sunBody, { backgroundColor: '#E8D08A', opacity: 0.40 }]} />
-        <View style={[styles.sunGlow, { backgroundColor: '#E8D08A', opacity: 0.12 }]} />
+        <View style={[styles.sunBody, { backgroundColor: '#F0D888', opacity: 0.60 }]} />
+        <View style={[styles.sunGlow, { backgroundColor: '#F0D888', opacity: 0.22 }]} />
       </View>
 
       {/* Clouds */}
       <View style={styles.cloud1}>
-        <View style={[styles.cloudPuff, { width: 40, height: 16, backgroundColor: '#fff', opacity: 0.38 }]} />
-        <View style={[styles.cloudPuff, { width: 26, height: 12, left: 28, top: -3, backgroundColor: '#fff', opacity: 0.30 }]} />
-        <View style={[styles.cloudPuff, { width: 20, height: 10, left: -8, top: 2, backgroundColor: '#fff', opacity: 0.25 }]} />
+        <View style={[styles.cloudPuff, { width: 56, height: 22, backgroundColor: '#fff', opacity: 0.58 }]} />
+        <View style={[styles.cloudPuff, { width: 36, height: 16, left: 38, top: -3, backgroundColor: '#fff', opacity: 0.48 }]} />
+        <View style={[styles.cloudPuff, { width: 28, height: 14, left: -10, top: 2, backgroundColor: '#fff', opacity: 0.42 }]} />
       </View>
       <View style={styles.cloud2}>
-        <View style={[styles.cloudPuff, { width: 34, height: 14, backgroundColor: '#fff', opacity: 0.35 }]} />
-        <View style={[styles.cloudPuff, { width: 22, height: 10, left: 24, top: -2, backgroundColor: '#fff', opacity: 0.28 }]} />
+        <View style={[styles.cloudPuff, { width: 48, height: 18, backgroundColor: '#fff', opacity: 0.52 }]} />
+        <View style={[styles.cloudPuff, { width: 30, height: 14, left: 34, top: -2, backgroundColor: '#fff', opacity: 0.42 }]} />
       </View>
 
       {/* Distant treeline — very faint */}
@@ -148,20 +148,20 @@ export function ActBirchForest({ actionCount, completedToday, fullScreen }: ActB
 
       {/* Cabin */}
       <View style={styles.cabin}>
-        <View style={[styles.cabinBody, { backgroundColor: wood, opacity: 0.55 }]} />
+        <View style={[styles.cabinBody, { backgroundColor: wood, opacity: 0.72 }]} />
         <View style={[styles.cabinRoof, {
           borderBottomColor: wood,
           borderLeftColor: 'transparent',
           borderRightColor: 'transparent',
-          opacity: 0.60,
+          opacity: 0.75,
         }]} />
-        <View style={[styles.cabinDoor, { backgroundColor: '#5A504A', opacity: 0.50 }]} />
-        <View style={[styles.cabinWindow, { backgroundColor: '#E8D88C', opacity: 0.55 }]} />
+        <View style={[styles.cabinDoor, { backgroundColor: '#5A504A', opacity: 0.65 }]} />
+        <View style={[styles.cabinWindow, { backgroundColor: '#F0D060', opacity: 0.72 }]} />
         {/* Chimney */}
-        <View style={[styles.chimney, { backgroundColor: '#6B6058', opacity: 0.55 }]} />
+        <View style={[styles.chimney, { backgroundColor: '#6B6058', opacity: 0.70 }]} />
         {/* Smoke wisps */}
-        <View style={[styles.smoke1, { backgroundColor: '#B8B4B0', opacity: 0.30 }]} />
-        <View style={[styles.smoke2, { backgroundColor: '#C0BCB8', opacity: 0.22 }]} />
+        <View style={[styles.smoke1, { backgroundColor: '#B8B4B0', opacity: 0.45 }]} />
+        <View style={[styles.smoke2, { backgroundColor: '#C0BCB8', opacity: 0.35 }]} />
       </View>
 
       {/* Snow ground */}
@@ -232,15 +232,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   sunBody: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
   },
   sunGlow: {
     position: 'absolute',
-    width: 46,
-    height: 46,
-    borderRadius: 23,
+    width: 58,
+    height: 58,
+    borderRadius: 29,
   },
   // Clouds
   cloud1: {

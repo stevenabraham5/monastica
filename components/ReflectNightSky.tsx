@@ -21,6 +21,7 @@ import { useColors } from '../constants/colors';
 interface ReflectNightSkyProps {
   checkinsToday: number;
   latestFeeling: string | null;
+  fullScreen?: boolean;
 }
 
 const FEELING_GLOWS: Record<string, string> = {
@@ -89,12 +90,12 @@ function ConstellationIcon({ symbol, tint, x, y, delay }: {
   );
 }
 
-export function ReflectNightSky({ checkinsToday, latestFeeling }: ReflectNightSkyProps) {
+export function ReflectNightSky({ checkinsToday, latestFeeling, fullScreen }: ReflectNightSkyProps) {
   const colors = useColors();
   const glow = (latestFeeling && FEELING_GLOWS[latestFeeling]) || '#7EB8D4';
 
   return (
-    <View style={[styles.container, { backgroundColor: '#1A2030' + '30' }]}>
+    <View style={[styles.container, fullScreen && styles.containerFull, { backgroundColor: '#1A2030' + '30' }]}>
       {/* Deep sky */}
       <View style={[styles.deepSky, { backgroundColor: '#1A2030' + '15' }]} />
 
@@ -165,6 +166,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
     borderRadius: 16,
+  },
+  containerFull: {
+    height: '100%',
+    borderRadius: 0,
   },
   deepSky: {
     position: 'absolute',
