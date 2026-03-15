@@ -10,6 +10,7 @@ import { useColors } from '../../constants/colors';
 import { spacing } from '../../constants/spacing';
 import { staggerDelays } from '../../constants/motion';
 import { useAgentStore } from '../../store/agentStore';
+import { useAuthStore } from '../../store/authStore';
 import { useLifeModel } from '../../store/lifeModel';
 import { CATEGORY_COLORS, CATEGORY_LABELS, ROLE_COLORS } from '../../store/types';
 import type { BookingProposal, Escalation } from '../../store/types';
@@ -198,6 +199,7 @@ export default function ActScreen() {
   const router = useRouter();
   const actions = useActions();
   const { sentinel, cultivator, resolveEscalation, acceptProposal } = useAgentStore();
+  const userName = useAuthStore((s) => s.userName);
   const [agentResponses, setAgentResponses] = useState<Record<string, string>>({});
 
   const handleActionTap = useCallback((item: ActionItem) => {
@@ -241,7 +243,7 @@ export default function ActScreen() {
         showsVerticalScrollIndicator={false}
       >
         <EnterView delay={staggerDelays[0]}>
-          <TempoText variant="heading">Act</TempoText>
+          <TempoText variant="heading">{userName ? `${userName}'s` : ''} Act</TempoText>
           <TempoText variant="caption" color={colors.ink3} style={{ marginTop: spacing.xs }}>
             {actions.length > 0
               ? `${actions.length} thing${actions.length === 1 ? '' : 's'} waiting for you`

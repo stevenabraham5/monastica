@@ -18,6 +18,7 @@ import { spacing } from '../../constants/spacing';
 import { staggerDelays } from '../../constants/motion';
 import { useLifeModel } from '../../store/lifeModel';
 import { useAgentStore } from '../../store/agentStore';
+import { useAuthStore } from '../../store/authStore';
 import { useCoachStore, type CoachMessage } from '../../store/coachStore';
 
 // ────────────────────────────────────────────
@@ -204,6 +205,7 @@ export default function PatternsScreen() {
   const insets = useSafeAreaInsets();
   const patterns = usePatterns();
   const { domains, reflections } = useLifeModel();
+  const userName = useAuthStore((s) => s.userName);
   const [coachOpen, setCoachOpen] = useState(false);
   const [text, setText] = useState('');
   const scrollRef = useRef<ScrollView>(null);
@@ -240,7 +242,7 @@ export default function PatternsScreen() {
       >
         {/* Header */}
         <EnterView delay={staggerDelays[0]}>
-          <TempoText variant="heading">Grow</TempoText>
+          <TempoText variant="heading">{userName ? `${userName}'s` : ''} Grow</TempoText>
           <TempoText variant="caption" color={colors.ink3} style={{ marginTop: spacing.xs }}>
             Where you go to grow
           </TempoText>
