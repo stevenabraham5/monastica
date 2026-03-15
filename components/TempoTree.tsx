@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Dimensions } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -13,19 +13,15 @@ import { spacing } from '../constants/spacing';
 import { TEMPO_EASING } from '../constants/motion';
 
 /*
-  TempoTree — canonical Live Oak visualization.
+  TempoTree — subway-map style visualization.
 
-  Grows from roots up: roots → trunk → 8 domain branches → canopy leaves.
-  Each branch IS a domain. Its color = domain tint, its thickness + length
-  reflect the domain's current level. Labels + symbols sit at branch tips.
+  All 8 domain "lines" originate from a single root at the bottom center
+  and travel upward, curving outward like transit lines on a map.
+  Each line is colored by its domain tint. Line thickness reflects
+  the domain's current level. Labels + symbols sit at the terminus.
 
-  Animation sequence (staggered withDelay):
-    0ms      — roots emerge
-    400ms    — trunk grows upward
-    800ms    — branches fan out (each domain)
-    1200ms+  — canopy puffs appear at branch tips
-
-  Built with React Native Views as strokes — no SVG dependency.
+  Animation: lines grow upward from the root, staggered.
+  The trunk is a shared segment at the bottom before lines diverge.
 */
 
 interface DomainBranch {
@@ -39,7 +35,6 @@ interface TempoTreeProps {
   branches: DomainBranch[];
 }
 
-// Domain symbols matching GoalCard
 const DOMAIN_SYMBOLS: Record<string, string> = {
   'Sleep & Recovery': '\u263D',
   'Movement & Body': '\u223F',
@@ -51,220 +46,232 @@ const DOMAIN_SYMBOLS: Record<string, string> = {
   'Professional Relationships': '\u2229',
 };
 
-// Each branch position — angle from vertical, how high it forks from trunk,
-// and which side to place the label.
-// 4 left branches, 4 right branches, spreading like a real live oak.
-const BRANCH_LAYOUT = [
-  // Left side — top to bottom
-  { angle: -70, forkRatio: 0.90, side: 'left' as const, labelOffset: { x: -60, y: -18 } },
-  { angle: -50, forkRatio: 0.75, side: 'left' as const, labelOffset: { x: -66, y: -12 } },
-  { angle: -30, forkRatio: 0.55, side: 'left' as const, labelOffset: { x: -70, y: -8 } },
-  { angle: -15, forkRatio: 0.38, side: 'left' as const, labelOffset: { x: -72, y: -4 } },
-  // Right side — top to bottom
-  { angle: 70,  forkRatio: 0.90, side: 'right' as const, labelOffset: { x: 14, y: -18 } },
-  { angle: 50,  forkRatio: 0.75, side: 'right' as const, labelOffset: { x: 18, y: -12 } },
-  { angle: 30,  forkRatio: 0.55, side: 'right' as const, labelOffset: { x: 20, y: -8 } },
-  { angle: 15,  forkRatio: 0.38, side: 'right' as const, labelOffset: { x: 22, y: -4 } },
+// Each line's path: starts at center bottom, shares a trunk segment,
+// then curves to its final X position at the top.
+// xEnd = final horizontal position as % of container width
+// The vertical segment rises, then a diagonal/curved segment fans out.
+const LINE_PATHS = [
+  // Left lines (spread left from center)
+  { xEnd: 8,  trunkSplit: 0.70, side: 'left' as const },   // Sleep — far left, high split
+  { xEnd: 18, trunkSplit: 0.60, side: 'left' as const },   // Movement
+  { xEnd: 28, trunkSplit: 0.45, side: 'left' as const },   // Nourishment
+  { xEnd: 38, trunkSplit: 0.30, side: 'left' as const },   // Creative — near center
+  // Right lines (spread right from center)
+  { xEnd: 62, trunkSplit: 0.30, side: 'right' as const },  // Professional Work — near center
+  { xEnd: 72, trunkSplit: 0.45, side: 'right' as const },  // Learning
+  { xEnd: 82, trunkSplit: 0.60, side: 'right' as const },  // People I Love
+  { xEnd: 92, trunkSplit: 0.70, side: 'right' as const },  // Professional Relationships — far right
 ];
 
-const TRUNK_HEIGHT = 130;
-const GROUND_BOTTOM = 80; // px from container bottom
+const CONTAINER_HEIGHT = 420;
+const ROOT_BOTTOM = 60;       // px from bottom for root dot
+const TRUNK_TOP = 0.15;       // top of branches as ratio of height
+const TRUNK_BOTTOM = 0.85;    // bottom of trunk as ratio of height
 
-// ── Animated domain branch ──
-
-function DomainBranchView({ branch, layout, index }: {
+function SubwayLine({ branch, path, index }: {
   branch: DomainBranch;
-  layout: typeof BRANCH_LAYOUT[0];
+  path: typeof LINE_PATHS[0];
   index: number;
 }) {
   const colors = useColors();
   const grow = useSharedValue(0);
-  const canopyGrow = useSharedValue(0);
+  const labelShow = useSharedValue(0);
 
   useEffect(() => {
-    // Branch grows after trunk (800ms base + stagger)
     grow.value = withDelay(
-      800 + index * 100,
-      withTiming(1, { duration: 800, easing: TEMPO_EASING }),
+      300 + index * 120,
+      withTiming(1, { duration: 1000, easing: TEMPO_EASING }),
     );
-    // Canopy puff appears after branch
-    canopyGrow.value = withDelay(
-      1200 + index * 100,
-      withTiming(1, { duration: 600, easing: TEMPO_EASING }),
+    labelShow.value = withDelay(
+      900 + index * 120,
+      withTiming(1, { duration: 500, easing: TEMPO_EASING }),
     );
   }, []);
 
-  // Branch line — length and thickness scale with domain level
-  const branchStyle = useAnimatedStyle(() => {
+  const thickness = 2.5 + branch.level * 4; // 2.5–6.5px
+
+  // Vertical segment — from split point upward in the shared trunk area
+  const splitY = TRUNK_BOTTOM - path.trunkSplit * (TRUNK_BOTTOM - TRUNK_TOP);
+  const vertSegmentTop = splitY;
+  const vertSegmentHeight = TRUNK_BOTTOM - splitY;
+
+  const vertStyle = useAnimatedStyle(() => {
     const progress = grow.value;
-    const baseLength = 35 + branch.level * 55; // 35–90px
-    const thickness = 1.5 + branch.level * 2.5; // 1.5–4px
     return {
-      width: thickness * progress,
-      height: baseLength * progress,
+      position: 'absolute' as const,
+      left: '50%',
+      marginLeft: -thickness / 2,
+      top: `${(vertSegmentTop + vertSegmentHeight * (1 - progress)) * 100}%` as any,
+      height: `${vertSegmentHeight * progress * 100}%` as any,
+      width: thickness,
       backgroundColor: branch.tint,
-      opacity: interpolate(progress, [0, 0.3, 1], [0, 0.5, 0.7 + branch.level * 0.3]),
-      transform: [{ rotate: `${layout.angle}deg` }],
-      borderRadius: thickness,
+      opacity: interpolate(progress, [0, 0.2, 1], [0, 0.4, 0.7 + branch.level * 0.3]),
+      borderRadius: thickness / 2,
     };
   });
 
-  // Sub-branch forking from main branch
-  const subAngle = layout.angle + (layout.side === 'left' ? -25 : 25);
-  const subBranchStyle = useAnimatedStyle(() => {
+  // Diagonal segment — from split point up to the terminus position
+  // We approximate the curve with a rotated rectangle
+  const centerX = 50; // percent
+  const deltaX = path.xEnd - centerX; // how far left/right from center
+  const diagonalTop = TRUNK_TOP;
+  const diagonalBottom = splitY;
+  const diagonalHeight = diagonalBottom - diagonalTop;
+
+  // Calculate rotation angle for the diagonal
+  // We need to go deltaX% horizontally over diagonalHeight% vertically
+  const containerWidth = Dimensions.get('window').width - 32; // approximate padding
+  const pixelDeltaX = (deltaX / 100) * containerWidth;
+  const pixelDeltaY = diagonalHeight * CONTAINER_HEIGHT;
+  const angleRad = Math.atan2(pixelDeltaX, pixelDeltaY);
+  const angleDeg = (angleRad * 180) / Math.PI;
+  const diagonalLength = Math.sqrt(pixelDeltaX * pixelDeltaX + pixelDeltaY * pixelDeltaY);
+
+  const diagStyle = useAnimatedStyle(() => {
     const progress = grow.value;
-    const len = 15 + branch.level * 25;
     return {
-      width: 1 * progress,
-      height: len * progress,
+      position: 'absolute' as const,
+      left: '50%',
+      marginLeft: -thickness / 2,
+      top: `${splitY * 100}%` as any,
+      height: diagonalLength * progress,
+      width: thickness,
       backgroundColor: branch.tint,
-      opacity: interpolate(progress, [0, 0.5, 1], [0, 0.2, 0.3 + branch.level * 0.3]),
-      transform: [{ rotate: `${subAngle}deg` }],
-      borderRadius: 1,
+      opacity: interpolate(progress, [0, 0.3, 1], [0, 0.3, 0.7 + branch.level * 0.3]),
+      borderRadius: thickness / 2,
+      transform: [
+        { rotate: `${angleDeg}deg` },
+      ],
+      transformOrigin: 'bottom center',
     };
   });
 
-  // Canopy puff at branch tip
-  const canopyStyle = useAnimatedStyle(() => {
-    const p = canopyGrow.value;
-    const size = (16 + branch.level * 22) * p;
+  // Terminus dot
+  const dotStyle = useAnimatedStyle(() => {
+    const size = 8 + branch.level * 6;
     return {
       width: size,
-      height: size * 0.75,
+      height: size,
       borderRadius: size / 2,
-      backgroundColor: branch.tint,
-      opacity: interpolate(p, [0, 1], [0, 0.12 + branch.level * 0.12]),
+      borderWidth: 2,
+      borderColor: branch.tint,
+      backgroundColor: 'transparent',
+      opacity: labelShow.value,
     };
   });
 
-  // Label + symbol fade in
+  // Label
   const labelStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(canopyGrow.value, [0, 0.5, 1], [0, 0, 1]),
+    opacity: labelShow.value,
   }));
 
   const symbol = DOMAIN_SYMBOLS[branch.name] ?? '\u25CF';
-  const forkY = GROUND_BOTTOM + layout.forkRatio * TRUNK_HEIGHT;
+  const labelSide = path.side;
 
   return (
-    <View style={[styles.branchOrigin, { bottom: forkY }]}>
-      {/* Main branch */}
-      <Animated.View style={branchStyle} />
+    <>
+      {/* Shared trunk segment (colored) */}
+      <Animated.View style={vertStyle} />
 
-      {/* Sub-branch */}
-      <Animated.View style={[styles.subBranch, subBranchStyle]} />
+      {/* Diagonal spread segment */}
+      <Animated.View style={diagStyle} />
 
-      {/* Canopy puff */}
-      <Animated.View style={[styles.canopyPuff, canopyStyle]} />
-
-      {/* Label */}
+      {/* Terminus — dot + label at top */}
       <Animated.View style={[
-        styles.labelContainer,
+        styles.terminus,
         {
-          [layout.side === 'left' ? 'right' : 'left']: 0,
-          transform: [
-            { translateX: layout.labelOffset.x },
-            { translateY: layout.labelOffset.y },
-          ],
+          left: `${path.xEnd}%`,
+          top: `${TRUNK_TOP * 100 - 2}%`,
         },
-        labelStyle,
       ]}>
-        <View style={[styles.labelRow, layout.side === 'right' && { flexDirection: 'row' }]}>
-          <TempoText variant="body" style={{ fontSize: 14, color: branch.tint }}>
+        <Animated.View style={dotStyle} />
+        <Animated.View style={[
+          styles.terminusLabel,
+          labelSide === 'left' ? { alignItems: 'flex-end', right: 18 } : { alignItems: 'flex-start', left: 18 },
+          labelStyle,
+        ]}>
+          <TempoText variant="body" style={{ fontSize: 16, color: branch.tint }}>
             {symbol}
           </TempoText>
-        </View>
-        <TempoText
-          variant="caption"
-          color={branch.tint}
-          style={[styles.branchLabel, { textAlign: layout.side }]}
-          numberOfLines={2}
-        >
-          {branch.name}
-        </TempoText>
+          <TempoText variant="caption" color={branch.tint} style={styles.lineName} numberOfLines={2}>
+            {branch.name}
+          </TempoText>
+        </Animated.View>
       </Animated.View>
-    </View>
+    </>
   );
 }
 
-// ── Main tree ──
-
 export function TempoTree({ score, branches }: TempoTreeProps) {
   const colors = useColors();
-  const rootGrow = useSharedValue(0);
   const trunkGrow = useSharedValue(0);
+  const rootGrow = useSharedValue(0);
 
   useEffect(() => {
-    // Roots first
-    rootGrow.value = withTiming(1, { duration: 600, easing: TEMPO_EASING });
-    // Trunk after roots
-    trunkGrow.value = withDelay(
-      400,
-      withTiming(1, { duration: 700, easing: TEMPO_EASING }),
-    );
+    rootGrow.value = withTiming(1, { duration: 400, easing: TEMPO_EASING });
+    trunkGrow.value = withDelay(200, withTiming(1, { duration: 600, easing: TEMPO_EASING }));
   }, []);
 
-  // Trunk — grows upward from ground
+  // Shared trunk — grows up from root
   const trunkStyle = useAnimatedStyle(() => ({
-    height: TRUNK_HEIGHT * trunkGrow.value,
-    opacity: interpolate(trunkGrow.value, [0, 0.2, 1], [0, 0.6, 1]),
+    height: `${(TRUNK_BOTTOM - 0.50) * 100 * trunkGrow.value}%` as any,
+    opacity: interpolate(trunkGrow.value, [0, 0.3, 1], [0, 0.5, 0.8]),
   }));
 
-  // Roots grow outward
-  const makeRootStyle = (angle: number, length: number, delay: number) => {
-    const style = useAnimatedStyle(() => ({
-      height: length * rootGrow.value,
-      opacity: interpolate(rootGrow.value, [0, 0.3, 1], [0, 0.3, 0.5]),
-      transform: [{ rotate: `${angle}deg` }],
-    }));
-    return style;
-  };
+  // Root dot
+  const rootDotStyle = useAnimatedStyle(() => ({
+    opacity: rootGrow.value,
+    transform: [{ scale: rootGrow.value }],
+  }));
 
-  const rootStyles = [
-    makeRootStyle(-25, 45, 0),
-    makeRootStyle(-50, 35, 50),
-    makeRootStyle(-70, 28, 100),
-    makeRootStyle(25, 45, 0),
-    makeRootStyle(50, 35, 50),
-    makeRootStyle(70, 28, 100),
-    makeRootStyle(-8, 38, 30),
-    makeRootStyle(8, 32, 30),
+  // Root lines
+  const rootLineStyle = (angle: number, len: number) => useAnimatedStyle(() => ({
+    height: len * rootGrow.value,
+    opacity: interpolate(rootGrow.value, [0, 1], [0, 0.3]),
+    transform: [{ rotate: `${angle}deg` }],
+  }));
+
+  const rootLines = [
+    rootLineStyle(-35, 30), rootLineStyle(-55, 22), rootLineStyle(-15, 24),
+    rootLineStyle(35, 30), rootLineStyle(55, 22), rootLineStyle(15, 24),
+    rootLineStyle(-75, 18), rootLineStyle(75, 18),
   ];
-
-  const barkColor = colors.ink3;
 
   return (
     <View style={styles.container}>
-      {/* Ground line */}
-      <View style={[styles.ground, { backgroundColor: colors.border, bottom: GROUND_BOTTOM }]} />
-
-      {/* Root system — grows first */}
-      <View style={[styles.rootOrigin, { bottom: GROUND_BOTTOM }]}>
-        {rootStyles.map((rs, i) => (
+      {/* Root system */}
+      <View style={[styles.rootOrigin, { bottom: ROOT_BOTTOM - 10 }]}>
+        {rootLines.map((rs, i) => (
           <Animated.View
             key={i}
-            style={[{ position: 'absolute', width: 1.5, borderRadius: 1, backgroundColor: barkColor }, rs]}
+            style={[{ position: 'absolute', width: 1.5, borderRadius: 1, backgroundColor: colors.ink3 }, rs]}
           />
         ))}
       </View>
 
-      {/* Trunk — grows upward after roots */}
-      <Animated.View style={[styles.trunk, { backgroundColor: barkColor, bottom: GROUND_BOTTOM }, trunkStyle]} />
+      {/* Root dot */}
+      <Animated.View style={[
+        styles.rootDot,
+        { backgroundColor: colors.ink3, bottom: ROOT_BOTTOM },
+        rootDotStyle,
+      ]} />
 
-      {/* Trunk texture lines */}
-      <Animated.View style={[styles.trunkTexture1, { backgroundColor: barkColor, bottom: GROUND_BOTTOM + 20 }, { opacity: trunkGrow }]} />
-      <Animated.View style={[styles.trunkTexture2, { backgroundColor: barkColor, bottom: GROUND_BOTTOM + 50 }, { opacity: trunkGrow }]} />
+      {/* Shared trunk segment */}
+      <Animated.View style={[
+        styles.trunk,
+        { backgroundColor: colors.ink3 },
+        trunkStyle,
+      ]} />
 
-      {/* Domain branches — each one IS a domain */}
-      <View style={[styles.branchesContainer, { bottom: 0 }]}>
-        {branches.map((b, i) => (
-          <DomainBranchView
-            key={b.name}
-            branch={b}
-            layout={BRANCH_LAYOUT[i % BRANCH_LAYOUT.length]}
-            index={i}
-          />
-        ))}
-      </View>
+      {/* Domain lines */}
+      {branches.map((b, i) => (
+        <SubwayLine
+          key={b.name}
+          branch={b}
+          path={LINE_PATHS[i % LINE_PATHS.length]}
+          index={i}
+        />
+      ))}
 
       {/* Score */}
       <View style={styles.scoreRow}>
@@ -278,95 +285,54 @@ export function TempoTree({ score, branches }: TempoTreeProps) {
 
 const styles = StyleSheet.create({
   container: {
-    height: 400,
+    height: CONTAINER_HEIGHT,
     position: 'relative',
     overflow: 'hidden',
   },
 
-  // Ground
-  ground: {
-    position: 'absolute',
-    left: '10%',
-    right: '10%',
-    height: 1,
-  },
-
-  // Roots
   rootOrigin: {
     position: 'absolute',
     left: '50%',
     alignItems: 'center',
   },
+  rootDot: {
+    position: 'absolute',
+    left: '50%',
+    marginLeft: -5,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
 
-  // Trunk
   trunk: {
     position: 'absolute',
     left: '50%',
     marginLeft: -2,
+    bottom: ROOT_BOTTOM + 10,
     width: 4,
     borderRadius: 2,
   },
-  trunkTexture1: {
-    position: 'absolute',
-    left: '50%',
-    marginLeft: 3,
-    width: 1,
-    height: 15,
-    borderRadius: 0.5,
-    opacity: 0.2,
-  },
-  trunkTexture2: {
-    position: 'absolute',
-    left: '50%',
-    marginLeft: -4,
-    width: 1,
-    height: 12,
-    borderRadius: 0.5,
-    opacity: 0.15,
-  },
 
-  // Branch container
-  branchesContainer: {
+  terminus: {
     position: 'absolute',
-    left: '50%',
-    top: 0,
-    width: 0,
-    height: '100%',
-  },
-
-  branchOrigin: {
-    position: 'absolute',
+    marginLeft: -7,
+    marginTop: -7,
     alignItems: 'center',
+    justifyContent: 'center',
+    width: 14,
+    height: 14,
   },
-
-  subBranch: {
+  terminusLabel: {
     position: 'absolute',
-    top: '50%',
+    top: -4,
+    width: 75,
   },
-
-  canopyPuff: {
-    position: 'absolute',
-    top: -12,
-  },
-
-  // Labels
-  labelContainer: {
-    position: 'absolute',
-    top: -16,
-    width: 70,
-  },
-  labelRow: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    gap: 3,
-  },
-  branchLabel: {
-    fontSize: 9,
-    lineHeight: 12,
+  lineName: {
+    fontSize: 10,
+    lineHeight: 13,
     marginTop: 1,
   },
 
-  // Score
   scoreRow: {
     position: 'absolute',
     bottom: spacing.xs,

@@ -41,19 +41,20 @@ const FEELING_TINTS: Record<string, string> = {
 };
 
 // Domain symbols that float on the water — matching GoalCard symbols
+// Spread across two rows at different depths for readability
 const FLOATING_ICONS = [
-  { symbol: '\u263D', tint: '#7B8FA1', x: '12%', delay: 0 },      // ☽ sleep
-  { symbol: '\u223F', tint: '#6B9F78', x: '28%', delay: 400 },    // ∿ movement
-  { symbol: '\u25CB', tint: '#C49A6C', x: '42%', delay: 800 },    // ○ nourishment
-  { symbol: '\u2727', tint: '#9B7EC8', x: '58%', delay: 200 },    // ✧ creative
-  { symbol: '\u25A0', tint: '#5A7D8F', x: '72%', delay: 600 },    // ■ work
-  { symbol: '\u2022', tint: '#4A8C6F', x: '85%', delay: 1000 },   // • learning
-  { symbol: '\u2661', tint: '#C07878', x: '20%', delay: 300 },    // ♡ people
-  { symbol: '\u2229', tint: '#7889A0', x: '68%', delay: 700 },    // ∩ professional
+  { symbol: '\u263D', tint: '#7B8FA1', x: '5%',  y: '48%', delay: 0 },      // ☽ sleep
+  { symbol: '\u223F', tint: '#6B9F78', x: '20%', y: '52%', delay: 400 },    // ∿ movement
+  { symbol: '\u25CB', tint: '#C49A6C', x: '35%', y: '46%', delay: 800 },    // ○ nourishment
+  { symbol: '\u2727', tint: '#9B7EC8', x: '50%', y: '55%', delay: 200 },    // ✧ creative
+  { symbol: '\u25A0', tint: '#5A7D8F', x: '65%', y: '48%', delay: 600 },    // ■ work
+  { symbol: '\u2022', tint: '#4A8C6F', x: '78%', y: '54%', delay: 1000 },   // • learning
+  { symbol: '\u2661', tint: '#C07878', x: '12%', y: '62%', delay: 300 },    // ♡ people
+  { symbol: '\u2229', tint: '#7889A0', x: '55%', y: '65%', delay: 700 },    // ∩ professional
 ];
 
-function FloatingIcon({ symbol, tint, x, delay }: {
-  symbol: string; tint: string; x: string; delay: number;
+function FloatingIcon({ symbol, tint, x, y, delay }: {
+  symbol: string; tint: string; x: string; y: string; delay: number;
 }) {
   const y = useSharedValue(0);
   const drift = useSharedValue(0);
@@ -86,8 +87,8 @@ function FloatingIcon({ symbol, tint, x, delay }: {
   }));
 
   return (
-    <Animated.View style={[styles.floatingIcon, { left: x as any }, style]}>
-      <TempoText variant="caption" style={{ fontSize: 16, color: tint }}>{symbol}</TempoText>
+    <Animated.View style={[styles.floatingIcon, { left: x as any, top: y as any }, style]}>
+      <TempoText variant="body" style={{ fontSize: 22, color: tint }}>{symbol}</TempoText>
     </Animated.View>
   );
 }
@@ -184,6 +185,7 @@ export function ReflectOcean({ checkinsToday, latestFeeling }: ReflectOceanProps
           symbol={icon.symbol}
           tint={icon.tint}
           x={icon.x}
+          y={icon.y}
           delay={icon.delay}
         />
       ))}
@@ -312,7 +314,6 @@ const styles = StyleSheet.create({
   // Floating icons
   floatingIcon: {
     position: 'absolute',
-    top: '43%',
   },
   countRow: {
     position: 'absolute',
