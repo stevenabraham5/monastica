@@ -292,18 +292,6 @@ export default function NowScreen() {
               onChangeText={setReflectionText}
               onSubmit={submitReflection}
             />
-            {reflections.length > 0 && (
-              <View style={styles.recentReflections}>
-                {reflections.slice(0, 3).map((entry) => (
-                  <View key={entry.id} style={[styles.reflectionEntry, { borderBottomColor: colors.border }]}>
-                    <TempoText variant="label" color={colors.ink3}>{entry.date}</TempoText>
-                    <TempoText variant="caption" color={colors.ink2} numberOfLines={2} style={{ marginTop: spacing.xs }}>
-                      {entry.text}
-                    </TempoText>
-                  </View>
-                ))}
-              </View>
-            )}
           </EnterView>
         )}
 
@@ -420,13 +408,6 @@ const styles = StyleSheet.create({
   },
   pulseRow: {
     gap: spacing.sm,
-  },
-  recentReflections: {
-    marginTop: spacing.base,
-  },
-  reflectionEntry: {
-    paddingVertical: spacing.base,
-    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   // Cards (shared between proposals + escalations)
   card: {

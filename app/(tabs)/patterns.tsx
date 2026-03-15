@@ -202,6 +202,7 @@ export default function PatternsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const patterns = usePatterns();
+  const { reflections } = useLifeModel();
   const [coachOpen, setCoachOpen] = useState(false);
   const [text, setText] = useState('');
   const scrollRef = useRef<ScrollView>(null);
@@ -258,6 +259,21 @@ export default function PatternsScreen() {
             <TempoText variant="body" color={colors.ink3}>
               Not enough data yet. Check in, reflect, and let the agents work.
             </TempoText>
+          </EnterView>
+        )}
+
+        {/* Recent reflections */}
+        {reflections.length > 0 && (
+          <EnterView delay={staggerDelays[2]} style={styles.reflectionSection}>
+            <TempoText variant="label" color={colors.ink3} style={{ marginBottom: spacing.md }}>REFLECTIONS</TempoText>
+            {reflections.slice(0, 5).map((entry) => (
+              <View key={entry.id} style={[styles.reflectionEntry, { borderBottomColor: colors.border }]}>
+                <TempoText variant="label" color={colors.ink3}>{entry.date}</TempoText>
+                <TempoText variant="caption" color={colors.ink2} style={{ marginTop: spacing.xs }}>
+                  {entry.text}
+                </TempoText>
+              </View>
+            ))}
           </EnterView>
         )}
 
@@ -368,6 +384,13 @@ const styles = StyleSheet.create({
   },
   coachSection: {
     marginTop: spacing['2xl'],
+  },
+  reflectionSection: {
+    marginTop: spacing['2xl'],
+  },
+  reflectionEntry: {
+    paddingVertical: spacing.base,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   coachHeader: {
     flexDirection: 'row',
