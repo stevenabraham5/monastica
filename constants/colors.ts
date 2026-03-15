@@ -47,9 +47,9 @@ const dark = {
   danger: '#8B2E2E',
 } as const;
 
-export type Colors = typeof light;
+export type Colors = typeof light & typeof dark;
 
-export function useColors(): Colors {
+export function useColors() {
   const scheme = useColorScheme();
   return scheme === 'dark' ? dark : light;
 }

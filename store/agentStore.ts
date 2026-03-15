@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import type { CalendarProvider } from '../services/calendar';
 
 export type PersonaId = 'guardian' | 'pragmatist' | 'delegator';
 
@@ -13,7 +14,7 @@ export const personas: Record<PersonaId, Persona> = {
   guardian: {
     id: 'guardian',
     name: 'The Guardian',
-    philosophy: 'Full control. Reviews everything. Delegates nothing without explicit approval.',
+    philosophy: 'Full control. Reviews everything. Delegates nothing.',
     behaviors: [
       'All meetings require your approval before action',
       'Agent advises but never acts autonomously',
@@ -24,7 +25,7 @@ export const personas: Record<PersonaId, Persona> = {
   pragmatist: {
     id: 'pragmatist',
     name: 'The Pragmatist',
-    philosophy: 'Delegates selectively by meeting type. Trusts Tempo for low-stakes, reviews high-stakes.',
+    philosophy: 'Delegates selectively. Trusts Tempo for low-stakes, reviews high-stakes.',
     behaviors: [
       'Recurring syncs: agent handles autonomously',
       'External or director+ meetings: escalated to you',
@@ -35,7 +36,7 @@ export const personas: Record<PersonaId, Persona> = {
   delegator: {
     id: 'delegator',
     name: 'The Delegator',
-    philosophy: 'Sets policies once. Expects Tempo to act autonomously. Only exceptions and weekly summaries.',
+    philosophy: 'Sets policies once. Autonomous. Exceptions only.',
     behaviors: [
       'Agent acts on all meetings within your policies',
       'Only policy violations or novel situations escalated',
@@ -66,7 +67,23 @@ interface AgentStats {
   attended: number;
 }
 
-interface AgentState {
+export interface BlockedEvent {
+  id: string;
+  externalEventId: string;
+  title: string;
+  date: string;
+  provider: CalendarProvider;
+}
+
+interface CalendarState {
+  calendarConsent: boolean;
+  calendarProvider: CalendarProvider;
+  calendarId: string | null;
+  outlookToken: string | null;
+  blockedEvents: BlockedEvent[];
+}
+
+interface AgentState extends CalendarState {
   persona: PersonaId;
   activeSince: string;
   stats: AgentStats;
@@ -76,11 +93,24 @@ interface AgentState {
   setPersona: (persona: PersonaId) => void;
   resolveEscalation: (id: string, decision: 'attend' | 'agent' | 'decline') => void;
   addAction: (action: AgentAction) => void;
+
+  // Calendar
+  setCalendarConsent: (consent: boolean) => void;
+  setCalendarProvider: (provider: CalendarProvider) => void;
+  setCalendarId: (id: string | null) => void;
+  setOutlookToken: (token: string | null) => void;
+  addBlockedEvent: (event: BlockedEvent) => void;
+  removeBlockedEvent: (id: string) => void;
 }
 
 export const useAgentStore = create<AgentState>((set) => ({
   persona: 'pragmatist',
   activeSince: 'March 1',
+  calendarConsent: false,
+  calendarProvider: 'none',
+  calendarId: null,
+  outlookToken: null,
+  blockedEvents: [],
   stats: {
     hoursReclaimed: 14,
     deflected: 23,
@@ -136,5 +166,18 @@ export const useAgentStore = create<AgentState>((set) => ({
   addAction: (action) =>
     set((state) => ({
       activityFeed: [action, ...state.activityFeed],
+    })),
+
+  setCalendarConsent: (consent) => set({ calendarConsent: consent }),
+  setCalendarProvider: (provider) => set({ calendarProvider: provider }),
+  setCalendarId: (id) => set({ calendarId: id }),
+  setOutlookToken: (token) => set({ outlookToken: token }),
+  addBlockedEvent: (event) =>
+    set((state) => ({
+      blockedEvents: [...state.blockedEvents, event],
+    })),
+  removeBlockedEvent: (id) =>
+    set((state) => ({
+      blockedEvents: state.blockedEvents.filter((e) => e.id !== id),
     })),
 }));

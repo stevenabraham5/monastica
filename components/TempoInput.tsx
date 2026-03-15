@@ -111,7 +111,7 @@ export function TempoInput({
                 variant="caption"
                 color={isListening ? '#FFFFFF' : colors.ink2}
               >
-                {isListening ? '● Listening' : '🎤'}
+                {isListening ? '\u25CF' : '\u25CB'}
               </TempoText>
             </Pressable>
           )}

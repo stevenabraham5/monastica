@@ -29,35 +29,36 @@ export default function TabLayout() {
         tabBarActiveTintColor: colors.ink,
         tabBarInactiveTintColor: colors.ink3,
         tabBarIconStyle: { display: 'none' },
-        tabBarIndicatorStyle: {
-          backgroundColor: colors.accent,
-          height: 2,
-          borderRadius: 1,
-        },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Today',
-        }}
-      />
-      <Tabs.Screen
-        name="goals"
-        options={{
-          title: 'Goals',
+          title: 'Now',
         }}
       />
       <Tabs.Screen
         name="reflection"
         options={{
-          title: 'Reflection',
+          title: 'Reflect',
+        }}
+      />
+      <Tabs.Screen
+        name="coach"
+        options={{
+          title: 'Coach',
         }}
       />
       <Tabs.Screen
         name="agent"
         options={{
           title: 'Agent',
+        }}
+      />
+      <Tabs.Screen
+        name="goals"
+        options={{
+          href: null,
         }}
       />
     </Tabs>

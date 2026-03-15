@@ -1,37 +1,40 @@
-import React from 'react';
-import { View, ScrollView, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { TempoText } from '../../components/TempoText';
 import { TempoInput } from '../../components/TempoInput';
 import { GoalCard } from '../../components/GoalCard';
-import { AgentStrip } from '../../components/AgentStrip';
 import { EnterView } from '../../components/EnterView';
 import { useColors } from '../../constants/colors';
 import { spacing } from '../../constants/spacing';
 import { staggerDelays } from '../../constants/motion';
 import { useLifeModel } from '../../store/lifeModel';
-import { useAgentStore } from '../../store/agentStore';
-import { useVoiceInput } from '../../hooks/useVoiceInput';
 
-function formatDate(): string {
-  const now = new Date();
-  const day = now.toLocaleDateString('en-US', { weekday: 'long' });
-  const month = now.toLocaleDateString('en-US', { month: 'long' });
-  return `${day}, ${month}`;
+// Quick feeling words — tap to log how you feel right now
+const FEELINGS = ['rested', 'scattered', 'focused', 'drained', 'restless', 'steady', 'flat', 'energised'] as const;
+
+function getTimeContext(): string {
+  const h = new Date().getHours();
+  if (h < 6)  return 'Early hours';
+  if (h < 12) return 'Morning';
+  if (h < 17) return 'Afternoon';
+  if (h < 21) return 'Evening';
+  return 'Night';
 }
 
 export default function TodayScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { domains, intention, setIntention } = useLifeModel();
-  const hoursReclaimed = useAgentStore((s) => s.stats.hoursReclaimed);
+  const { domains, intention, setIntention, addCheckin, lastCheckin } = useLifeModel();
+  const [selectedFeeling, setSelectedFeeling] = useState<string | null>(lastCheckin?.feeling ?? null);
 
-  const voice = useVoiceInput((text) => {
-    setIntention((intention ? intention + ' ' : '') + text);
-  });
+  const handleFeeling = (f: string) => {
+    setSelectedFeeling(f);
+    addCheckin({ feeling: f, timestamp: Date.now() });
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.ground }]}>
@@ -43,63 +46,81 @@ export default function TodayScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Date header */}
         <EnterView delay={staggerDelays[0]}>
           <TempoText variant="body" color={colors.ink2}>
-            {formatDate()}
+            {getTimeContext()}
           </TempoText>
         </EnterView>
 
-        {/* Greeting / intention prompt */}
-        <EnterView delay={staggerDelays[1]} style={styles.greeting}>
+        {/* Present-moment check-in */}
+        <EnterView delay={staggerDelays[1]} style={styles.checkinSection}>
           <TempoText variant="display-lg" italic>
-            What matters today?
+            How are you right now?
           </TempoText>
+          <View style={styles.feelingsRow}>
+            {FEELINGS.map((f) => (
+              <Pressable
+                key={f}
+                onPress={() => handleFeeling(f)}
+                style={[
+                  styles.feelingChip,
+                  {
+                    backgroundColor: selectedFeeling === f ? colors.accent : colors.surface,
+                    borderColor: selectedFeeling === f ? colors.accent : colors.border,
+                  },
+                ]}
+                accessibilityRole="button"
+                accessibilityState={{ selected: selectedFeeling === f }}
+              >
+                <TempoText
+                  variant="caption"
+                  color={selectedFeeling === f ? '#FFFFFF' : colors.ink2}
+                >
+                  {f}
+                </TempoText>
+              </Pressable>
+            ))}
+          </View>
         </EnterView>
 
-        {/* Focus input */}
-        <EnterView delay={staggerDelays[2]} style={styles.focusSection}>
+        {/* Intention — what are you turning toward */}
+        <EnterView delay={staggerDelays[2]} style={styles.intentionSection}>
+          <TempoText variant="label" color={colors.ink3} style={styles.sectionLabel}>
+            INTENTION
+          </TempoText>
           <TempoInput
-            variant="display"
-            placeholder="Your one intention for today..."
+            variant="body"
+            placeholder="What are you turning toward?"
             multiline
             value={intention}
             onChangeText={setIntention}
             onSubmit={(text) => setIntention(text)}
-            showVoice={voice.isAvailable}
-            onVoicePress={voice.toggle}
-            isListening={voice.isListening}
           />
         </EnterView>
 
-        {/* Goal progress cards — horizontal scroll */}
-        <EnterView delay={staggerDelays[3]} style={styles.goalsSection}>
+        {/* Tempo pulse — compact domain fill vessels */}
+        <EnterView delay={staggerDelays[3]} style={styles.pulseSection}>
           <TempoText variant="label" color={colors.ink3} style={styles.sectionLabel}>
-            THIS WEEK
+            TEMPO
           </TempoText>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.goalsRow}
+            contentContainerStyle={styles.pulseRow}
           >
-            {domains.map((d) => (
+            {domains.map((d, i) => (
               <GoalCard
                 key={d.id}
                 domain={d.name}
                 goalStatement={d.goal}
                 targetHours={d.targetHours}
                 actualHours={d.actualHours}
+                index={i}
               />
             ))}
           </ScrollView>
         </EnterView>
       </ScrollView>
-
-      {/* Agent status strip */}
-      <AgentStrip
-        message={`Tempo protected ${hoursReclaimed}h today`}
-        onPress={() => router.push('/(tabs)/agent')}
-      />
     </View>
   );
 }
@@ -112,19 +133,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     paddingBottom: spacing['2xl'],
   },
-  greeting: {
+  checkinSection: {
     marginTop: spacing['2xl'],
   },
-  focusSection: {
-    marginTop: spacing.xl,
+  feelingsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    marginTop: spacing.base,
   },
-  goalsSection: {
-    marginTop: spacing['3xl'],
+  feelingChip: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  intentionSection: {
+    marginTop: spacing['2xl'],
   },
   sectionLabel: {
     marginBottom: spacing.md,
   },
-  goalsRow: {
-    gap: spacing.md,
+  pulseSection: {
+    marginTop: spacing['2xl'],
+  },
+  pulseRow: {
+    gap: spacing.sm,
   },
 });

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { View, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -9,7 +9,6 @@ import { useColors } from '../../constants/colors';
 import { spacing } from '../../constants/spacing';
 import { staggerDelays } from '../../constants/motion';
 import { useLifeModel } from '../../store/lifeModel';
-import { useVoiceInput } from '../../hooks/useVoiceInput';
 
 export default function ReflectionScreen() {
   const colors = useColors();
@@ -20,17 +19,15 @@ export default function ReflectionScreen() {
   const submitReflection = (content: string) => {
     if (!content.trim()) return;
     const now = new Date();
+    const hour = now.getHours();
+    const period = hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening';
     addReflection({
       id: `r-${Date.now()}`,
-      date: now.toLocaleDateString('en-US', { month: 'long', day: 'numeric' }),
+      date: `${now.toLocaleDateString('en-US', { weekday: 'short' })} ${period}`,
       text: content.trim(),
     });
     setText('');
   };
-
-  const voice = useVoiceInput((spokenText) => {
-    setText((prev) => (prev ? prev + ' ' : '') + spokenText);
-  });
 
   return (
     <View style={[styles.container, { backgroundColor: colors.ground }]}>
@@ -43,49 +40,41 @@ export default function ReflectionScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Check-in prompt */}
+        {/* Prompt — present tense, not retrospective */}
         <EnterView delay={staggerDelays[0]} style={styles.promptContainer}>
           <TempoText variant="display-lg" italic style={styles.prompt}>
-            How did this week feel, honestly?
+            What just happened?
+          </TempoText>
+          <TempoText variant="caption" color={colors.ink3} style={styles.subPrompt}>
+            Or what are you noticing right now.
           </TempoText>
         </EnterView>
 
-        {/* Response area */}
+        {/* Input */}
         <EnterView delay={staggerDelays[1]} style={styles.inputSection}>
           <TempoInput
             variant="body"
-            placeholder="Take your time..."
+            placeholder="Say it plainly..."
             multiline
-            numberOfLines={6}
+            numberOfLines={4}
             textAlignVertical="top"
             style={styles.textarea}
             value={text}
             onChangeText={setText}
             onSubmit={submitReflection}
-            showVoice={voice.isAvailable}
-            onVoicePress={voice.toggle}
-            isListening={voice.isListening}
           />
         </EnterView>
 
-        {/* Past reflections */}
-        <EnterView delay={staggerDelays[2]} style={styles.pastSection}>
-          <TempoText variant="label" color={colors.ink3} style={styles.pastLabel}>
-            PAST REFLECTIONS
-          </TempoText>
-
-          {reflections.map((entry, i) => (
-            <EnterView
-              key={entry.id}
-              delay={staggerDelays[Math.min(i + 3, 4)]}
-            >
-              <Pressable
-                style={[
-                  styles.entryCard,
-                  { borderBottomColor: colors.border },
-                ]}
-                accessibilityLabel={`Reflection from ${entry.date}: ${entry.text}`}
-                accessibilityRole="button"
+        {/* Past entries */}
+        {reflections.length > 0 && (
+          <EnterView delay={staggerDelays[2]} style={styles.pastSection}>
+            <TempoText variant="label" color={colors.ink3} style={styles.pastLabel}>
+              RECENT
+            </TempoText>
+            {reflections.map((entry, i) => (
+              <View
+                key={entry.id}
+                style={[styles.entryCard, { borderBottomColor: colors.border }]}
               >
                 <TempoText variant="label" color={colors.ink3}>
                   {entry.date}
@@ -98,10 +87,10 @@ export default function ReflectionScreen() {
                 >
                   {entry.text}
                 </TempoText>
-              </Pressable>
-            </EnterView>
-          ))}
-        </EnterView>
+              </View>
+            ))}
+          </EnterView>
+        )}
       </ScrollView>
     </View>
   );
@@ -123,14 +112,18 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     maxWidth: 320,
   },
+  subPrompt: {
+    marginTop: spacing.sm,
+    textAlign: 'center',
+  },
   inputSection: {
     marginTop: spacing['2xl'],
   },
   textarea: {
-    minHeight: 120,
+    minHeight: 100,
   },
   pastSection: {
-    marginTop: spacing['3xl'],
+    marginTop: spacing['2xl'],
   },
   pastLabel: {
     marginBottom: spacing.base,
