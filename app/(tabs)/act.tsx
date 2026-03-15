@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { TempoText } from '../../components/TempoText';
+import { ActField } from '../../components/ActField';
 import { EnterView } from '../../components/EnterView';
 import { useColors } from '../../constants/colors';
 import { spacing } from '../../constants/spacing';
@@ -194,6 +195,11 @@ export default function ActScreen() {
               ? `${actions.length} thing${actions.length === 1 ? '' : 's'} waiting for you`
               : 'Nothing waiting. You\u2019re clear.'}
           </TempoText>
+        </EnterView>
+
+        {/* Field hero */}
+        <EnterView delay={staggerDelays[0]} style={{ marginTop: spacing.xl }}>
+          <ActField actionCount={actions.length} completedToday={0} />
         </EnterView>
 
         {actions.length > 0 ? (

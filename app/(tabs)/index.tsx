@@ -7,6 +7,7 @@ import { TempoText } from '../../components/TempoText';
 import { TempoInput } from '../../components/TempoInput';
 import { GoalCard } from '../../components/GoalCard';
 import { DomainSheet } from '../../components/DomainSheet';
+import { ReflectOcean } from '../../components/ReflectOcean';
 import { EnterView } from '../../components/EnterView';
 import { useColors } from '../../constants/colors';
 import { spacing } from '../../constants/spacing';
@@ -137,7 +138,7 @@ export default function NowScreen() {
   const {
     domains, intention, setIntention, addCheckin, lastCheckin,
     adjustDomainLevel, addDomainEntry, domainEntries,
-    reflections, addReflection, updateReflection,
+    reflections, addReflection, updateReflection, checkins,
   } = useLifeModel();
   const {
     sentinel, cultivator,
@@ -217,6 +218,11 @@ export default function NowScreen() {
   // Most recent reflection with agent response
   const lastReflection = reflections.length > 0 ? reflections[0] : null;
 
+  // Count today's check-ins
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const checkinsToday = checkins.filter((c) => c.timestamp >= todayStart.getTime()).length;
+
   const timeCtx = getTimeContext();
 
   return (
@@ -244,6 +250,11 @@ export default function NowScreen() {
               <TempoText variant="caption" color={colors.ink3}>Settings</TempoText>
             </Pressable>
           </View>
+        </EnterView>
+
+        {/* Ocean hero — ripples per check-in */}
+        <EnterView delay={staggerDelays[0]} style={styles.section}>
+          <ReflectOcean checkinsToday={checkinsToday} latestFeeling={selectedFeeling} />
         </EnterView>
 
         {/* Tempo index */}

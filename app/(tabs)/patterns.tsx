@@ -11,6 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { TempoText } from '../../components/TempoText';
 import { TempoInput } from '../../components/TempoInput';
+import { TempoTree } from '../../components/TempoTree';
 import { EnterView } from '../../components/EnterView';
 import { useColors } from '../../constants/colors';
 import { spacing } from '../../constants/spacing';
@@ -202,7 +203,7 @@ export default function PatternsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const patterns = usePatterns();
-  const { reflections } = useLifeModel();
+  const { domains, reflections } = useLifeModel();
   const [coachOpen, setCoachOpen] = useState(false);
   const [text, setText] = useState('');
   const scrollRef = useRef<ScrollView>(null);
@@ -243,6 +244,32 @@ export default function PatternsScreen() {
           <TempoText variant="caption" color={colors.ink3} style={{ marginTop: spacing.xs }}>
             Where you go to grow
           </TempoText>
+        </EnterView>
+
+        {/* Tree hero — branches are domains */}
+        <EnterView delay={staggerDelays[0]} style={{ marginTop: spacing.xl }}>
+          <TempoTree
+            score={Math.round(
+              domains.reduce((sum, d) => {
+                const level = d.subjectiveLevel ?? (d.targetHours > 0 ? Math.min(d.actualHours / d.targetHours, 1) : 0.5);
+                return sum + level;
+              }, 0) / Math.max(domains.length, 1) * 100
+            )}
+            branches={domains.map((d) => ({
+              name: d.name,
+              level: d.subjectiveLevel ?? (d.targetHours > 0 ? Math.min(d.actualHours / d.targetHours, 1) : 0.5),
+              tint: ({
+                'Sleep & Recovery': '#7B8FA1',
+                'Movement & Body': '#6B9F78',
+                'Nourishment': '#C49A6C',
+                'Creative Expression': '#9B7EC8',
+                'Professional Work': '#5A7D8F',
+                'Learning & Growth': '#4A8C6F',
+                'People I Love': '#C07878',
+                'Professional Relationships': '#7889A0',
+              } as Record<string, string>)[d.name] ?? '#888780',
+            }))}
+          />
         </EnterView>
 
         {/* Pattern cards */}
