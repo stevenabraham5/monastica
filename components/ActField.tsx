@@ -202,8 +202,6 @@ export function ActField({ actionCount, completedToday, fullScreen }: ActFieldPr
   );
 }
 
-const HORIZON = '58%';
-
 const styles = StyleSheet.create({
   container: {
     height: 280,
@@ -220,7 +218,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: HORIZON,
+    height: '70%',
   },
 
   // Sun
@@ -270,7 +268,7 @@ const styles = StyleSheet.create({
   // Distant hills
   distantHill1: {
     position: 'absolute',
-    top: '42%',
+    bottom: '28%',
     left: '10%',
     width: '35%',
     height: '18%',
@@ -279,7 +277,7 @@ const styles = StyleSheet.create({
   },
   distantHill2: {
     position: 'absolute',
-    top: '46%',
+    bottom: '24%',
     right: '5%',
     width: '30%',
     height: '14%',
@@ -289,7 +287,7 @@ const styles = StyleSheet.create({
 
   horizonLine: {
     position: 'absolute',
-    top: HORIZON,
+    bottom: '30%',
     left: 0,
     right: 0,
     height: 1,
@@ -298,7 +296,7 @@ const styles = StyleSheet.create({
   // Barn
   barnGroup: {
     position: 'absolute',
-    top: '38%',
+    bottom: '30%',
     right: '18%',
   },
   barnBody: {
@@ -344,7 +342,7 @@ const styles = StyleSheet.create({
   // Fence
   fenceRow: {
     position: 'absolute',
-    top: '52%',
+    bottom: '22%',
     left: '5%',
     right: '50%',
     flexDirection: 'row',
@@ -375,14 +373,14 @@ const styles = StyleSheet.create({
 
   ground: {
     position: 'absolute',
-    top: HORIZON,
+    bottom: 0,
     left: 0,
     right: 0,
-    bottom: 0,
+    height: '30%',
   },
   blade: {
     position: 'absolute',
-    bottom: '42%',
+    bottom: 0,
     width: 3,
     borderRadius: 1,
     backgroundColor: '#4A8C5C',
@@ -390,13 +388,12 @@ const styles = StyleSheet.create({
   },
   dotRow: {
     position: 'absolute',
-    bottom: '42%',
+    bottom: 4,
     left: spacing.xl,
     right: spacing.xl,
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 5,
-    transform: [{ translateY: 12 }],
   },
   actionDot: {
     width: 5,
@@ -410,7 +407,7 @@ const styles = StyleSheet.create({
   // Bird perched on fence
   bird1: {
     position: 'absolute',
-    top: '46%',
+    bottom: '28%',
     left: '18%',
   },
   birdBody: {
@@ -438,7 +435,7 @@ const styles = StyleSheet.create({
   // Rabbit
   rabbit: {
     position: 'absolute',
-    bottom: '44%',
+    bottom: '4%',
     right: '25%',
   },
   rabbitBody: {
