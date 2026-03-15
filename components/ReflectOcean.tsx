@@ -8,6 +8,7 @@ import Animated, {
   withDelay,
   withSequence,
   Easing,
+  interpolate,
 } from 'react-native-reanimated';
 import { TempoText } from './TempoText';
 import { useColors } from '../constants/colors';
@@ -134,6 +135,158 @@ function BobbingShip({ waterColor }: { waterColor: string }) {
   );
 }
 
+/*
+  FeelingAtmosphere — animated visual response when a feeling is selected.
+  Clouds, sun rays, fog, or ripples appear and fade in based on the feeling.
+*/
+
+const FEELING_ATMOSPHERE: Record<string, {
+  type: 'calm' | 'bright' | 'turbulent' | 'muted';
+  cloudColor: string;
+  intensity: number;
+}> = {
+  rested:    { type: 'calm',      cloudColor: '#D8E8F0', intensity: 0.5 },
+  steady:    { type: 'calm',      cloudColor: '#D0E0E8', intensity: 0.45 },
+  focused:   { type: 'bright',    cloudColor: '#E8E0C8', intensity: 0.6 },
+  energised: { type: 'bright',    cloudColor: '#E8D8A0', intensity: 0.65 },
+  scattered: { type: 'turbulent', cloudColor: '#B8C0C8', intensity: 0.55 },
+  restless:  { type: 'turbulent', cloudColor: '#A8B0B8', intensity: 0.5 },
+  drained:   { type: 'muted',     cloudColor: '#C0C4C8', intensity: 0.5 },
+  flat:      { type: 'muted',     cloudColor: '#B8BCC0', intensity: 0.45 },
+};
+
+function FeelingAtmosphere({ feeling }: { feeling: string | null }) {
+  const fadeIn = useSharedValue(0);
+  const drift1 = useSharedValue(0);
+  const drift2 = useSharedValue(0);
+  const pulse = useSharedValue(0);
+
+  useEffect(() => {
+    if (!feeling) return;
+    // Fade in on feeling change
+    fadeIn.value = 0;
+    fadeIn.value = withTiming(1, { duration: 800, easing: Easing.out(Easing.cubic) });
+
+    // Cloud/element drift
+    drift1.value = withRepeat(
+      withSequence(
+        withTiming(15, { duration: 4000, easing: Easing.inOut(Easing.sin) }),
+        withTiming(-15, { duration: 4000, easing: Easing.inOut(Easing.sin) }),
+      ),
+      -1,
+    );
+    drift2.value = withRepeat(
+      withSequence(
+        withTiming(-10, { duration: 3200, easing: Easing.inOut(Easing.sin) }),
+        withTiming(10, { duration: 3200, easing: Easing.inOut(Easing.sin) }),
+      ),
+      -1,
+    );
+    pulse.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 2000, easing: Easing.inOut(Easing.sin) }),
+        withTiming(0, { duration: 2000, easing: Easing.inOut(Easing.sin) }),
+      ),
+      -1,
+    );
+  }, [feeling]);
+
+  const containerStyle = useAnimatedStyle(() => ({
+    opacity: fadeIn.value,
+  }));
+
+  const cloud1Style = useAnimatedStyle(() => ({
+    transform: [{ translateX: drift1.value }],
+  }));
+
+  const cloud2Style = useAnimatedStyle(() => ({
+    transform: [{ translateX: drift2.value }],
+  }));
+
+  const cloud3Style = useAnimatedStyle(() => ({
+    transform: [{ translateX: drift1.value * 0.6 }],
+  }));
+
+  const rayStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(pulse.value, [0, 1], [0.08, 0.22]),
+  }));
+
+  if (!feeling) return null;
+
+  const atmo = FEELING_ATMOSPHERE[feeling] ?? FEELING_ATMOSPHERE.steady;
+  const cc = atmo.cloudColor;
+  const i = atmo.intensity;
+
+  return (
+    <Animated.View style={[StyleSheet.absoluteFill, containerStyle]} pointerEvents="none">
+      {/* Clouds — all types get clouds but different amounts/speeds */}
+      <Animated.View style={[atmosStyles.cloud, { top: '6%', left: '8%', width: 52, height: 20, backgroundColor: cc, opacity: i, borderRadius: 12 }, cloud1Style]} />
+      <Animated.View style={[atmosStyles.cloud, { top: '4%', right: '20%', width: 44, height: 16, backgroundColor: cc, opacity: i * 0.8, borderRadius: 10 }, cloud2Style]} />
+      <Animated.View style={[atmosStyles.cloud, { top: '12%', left: '40%', width: 36, height: 14, backgroundColor: cc, opacity: i * 0.65, borderRadius: 9 }, cloud3Style]} />
+
+      {/* Type-specific effects */}
+      {atmo.type === 'bright' && (
+        <>
+          {/* Sun rays — diagonal beams from upper right */}
+          <Animated.View style={[atmosStyles.ray, { top: '2%', right: '10%', width: 3, height: 60, backgroundColor: '#E8D08A', transform: [{ rotate: '25deg' }] }, rayStyle]} />
+          <Animated.View style={[atmosStyles.ray, { top: '0%', right: '22%', width: 2, height: 50, backgroundColor: '#E8D08A', transform: [{ rotate: '18deg' }] }, rayStyle]} />
+          <Animated.View style={[atmosStyles.ray, { top: '5%', right: '5%', width: 2.5, height: 45, backgroundColor: '#E8D08A', transform: [{ rotate: '32deg' }] }, rayStyle]} />
+          {/* Warm glow */}
+          <Animated.View style={[atmosStyles.glow, { top: '-5%', right: '5%', width: 80, height: 80, backgroundColor: '#E8C84A', borderRadius: 40 }, rayStyle]} />
+        </>
+      )}
+
+      {atmo.type === 'muted' && (
+        <>
+          {/* Fog banks — wider, lower, more opaque */}
+          <Animated.View style={[atmosStyles.cloud, { top: '20%', left: -20, width: '70%', height: 18, backgroundColor: cc, opacity: i * 0.7, borderRadius: 9 }, cloud1Style]} />
+          <Animated.View style={[atmosStyles.cloud, { top: '30%', right: -10, width: '55%', height: 14, backgroundColor: cc, opacity: i * 0.6, borderRadius: 7 }, cloud2Style]} />
+        </>
+      )}
+
+      {atmo.type === 'turbulent' && (
+        <>
+          {/* Extra clouds — darker, more scattered */}
+          <Animated.View style={[atmosStyles.cloud, { top: '18%', left: '5%', width: 28, height: 12, backgroundColor: cc, opacity: i * 0.7, borderRadius: 7 }, cloud2Style]} />
+          <Animated.View style={[atmosStyles.cloud, { top: '8%', right: '8%', width: 32, height: 14, backgroundColor: cc, opacity: i * 0.6, borderRadius: 8 }, cloud3Style]} />
+          {/* Extra wave lines */}
+          <View style={[atmosStyles.extraWave, { top: '48%', left: '5%', width: '40%', backgroundColor: cc, opacity: 0.15 }]} />
+          <View style={[atmosStyles.extraWave, { top: '58%', left: '35%', width: '45%', backgroundColor: cc, opacity: 0.12 }]} />
+        </>
+      )}
+
+      {atmo.type === 'calm' && (
+        <>
+          {/* Soft highlight on water */}
+          <View style={[atmosStyles.waterGlow, { top: '45%', left: '30%', width: 60, height: 6, backgroundColor: '#fff', opacity: 0.12, borderRadius: 3 }]} />
+          <View style={[atmosStyles.waterGlow, { top: '55%', left: '50%', width: 40, height: 4, backgroundColor: '#fff', opacity: 0.08, borderRadius: 2 }]} />
+        </>
+      )}
+    </Animated.View>
+  );
+}
+
+const atmosStyles = StyleSheet.create({
+  cloud: {
+    position: 'absolute',
+  },
+  ray: {
+    position: 'absolute',
+    borderRadius: 2,
+  },
+  glow: {
+    position: 'absolute',
+  },
+  extraWave: {
+    position: 'absolute',
+    height: 1,
+    borderRadius: 0.5,
+  },
+  waterGlow: {
+    position: 'absolute',
+  },
+});
+
 export function ReflectOcean({ checkinsToday, latestFeeling }: ReflectOceanProps) {
   const colors = useColors();
   const waterColor = (latestFeeling && FEELING_TINTS[latestFeeling]) || '#7EB8D4';
@@ -208,6 +361,9 @@ export function ReflectOcean({ checkinsToday, latestFeeling }: ReflectOceanProps
           delay={icon.delay}
         />
       ))}
+
+      {/* Feeling atmosphere — visual response to selected feeling */}
+      <FeelingAtmosphere feeling={latestFeeling} />
 
       {/* Check-in count */}
       <View style={styles.countRow}>
