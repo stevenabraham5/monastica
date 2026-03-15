@@ -28,6 +28,7 @@ interface GoalCardProps {
   goalStatement: string;
   targetHours: number;
   actualHours: number;
+  subjectiveLevel?: number | null;
   onPress?: () => void;
   index?: number;
 }
@@ -36,11 +37,14 @@ export function GoalCard({
   domain,
   targetHours,
   actualHours,
+  subjectiveLevel,
   onPress,
   index = 0,
 }: GoalCardProps) {
   const colors = useColors();
-  const progress = targetHours > 0 ? Math.min(actualHours / targetHours, 1) : 0;
+  const progress = subjectiveLevel != null
+    ? subjectiveLevel
+    : targetHours > 0 ? Math.min(actualHours / targetHours, 1) : 0;
   const fillHeight = useSharedValue(0);
   const visual = domainVisuals[domain] ?? { symbol: '\u25CF', tint: colors.accent };
 

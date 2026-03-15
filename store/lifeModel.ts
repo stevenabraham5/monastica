@@ -14,6 +14,8 @@ export interface Domain {
   targetHours: number;
   actualHours: number;
   subGoals: SubGoal[];
+  subjectiveLevel: number | null;   // 0–1 manual override, null = use hours ratio
+  lastAdjusted: number | null;      // timestamp of last manual or auto adjustment
 }
 
 export interface Reflection {
@@ -28,6 +30,14 @@ export interface Checkin {
   note?: string;
 }
 
+export interface DomainEntry {
+  id: string;
+  domainId: string;
+  level: number;       // 0–1 rating at time of entry
+  note: string;        // free-text
+  timestamp: number;
+}
+
 interface LifeModelState {
   intention: string;
   intentionSet: boolean;
@@ -35,6 +45,7 @@ interface LifeModelState {
   reflections: Reflection[];
   checkins: Checkin[];
   lastCheckin: Checkin | null;
+  domainEntries: DomainEntry[];
   relationships: Relationship[];
   standingPolicies: StandingPolicy[];
   energyProfile: EnergyProfile;
@@ -51,6 +62,9 @@ interface LifeModelState {
   updateRelationship: (id: string, updates: Partial<Relationship>) => void;
   addPolicy: (policy: StandingPolicy) => void;
   setEnergyProfile: (profile: EnergyProfile) => void;
+  adjustDomainLevel: (id: string, level: number) => void;
+  nudgeDomain: (name: string, delta: number) => void;
+  addDomainEntry: (entry: DomainEntry) => void;
 }
 
 export const useLifeModel = create<LifeModelState>((set) => ({
@@ -58,6 +72,7 @@ export const useLifeModel = create<LifeModelState>((set) => ({
   intentionSet: false,
   checkins: [],
   lastCheckin: null,
+  domainEntries: [],
   relationships: [
     {
       id: 'rel-1',
@@ -115,6 +130,8 @@ export const useLifeModel = create<LifeModelState>((set) => ({
       goal: 'The foundation everything else depends on.',
       targetHours: 56,
       actualHours: 48,
+      subjectiveLevel: null,
+      lastAdjusted: null,
       subGoals: [
         { id: 's1', text: 'Wind down by 10pm', completed: true },
         { id: 's2', text: 'No screens in bed', completed: false },
@@ -127,6 +144,8 @@ export const useLifeModel = create<LifeModelState>((set) => ({
       goal: 'Move because it feels good.',
       targetHours: 7,
       actualHours: 4.5,
+      subjectiveLevel: null,
+      lastAdjusted: null,
       subGoals: [
         { id: 's4', text: 'Morning walk or stretch', completed: false },
         { id: 's5', text: 'Something vigorous twice a week', completed: true },
@@ -139,6 +158,8 @@ export const useLifeModel = create<LifeModelState>((set) => ({
       goal: 'Cook more. Eat slowly.',
       targetHours: 5,
       actualHours: 3,
+      subjectiveLevel: null,
+      lastAdjusted: null,
       subGoals: [
         { id: 's7', text: 'Cook a real meal most nights', completed: false },
         { id: 's8', text: 'Grocery shop with a plan', completed: true },
@@ -151,6 +172,8 @@ export const useLifeModel = create<LifeModelState>((set) => ({
       goal: 'Make things without purpose.',
       targetHours: 6,
       actualHours: 3.5,
+      subjectiveLevel: null,
+      lastAdjusted: null,
       subGoals: [
         { id: 's10', text: 'Daily writing or sketching', completed: true },
         { id: 's11', text: 'Finish one creative project per month', completed: false },
@@ -163,6 +186,8 @@ export const useLifeModel = create<LifeModelState>((set) => ({
       goal: 'Fewer things, more depth.',
       targetHours: 35,
       actualHours: 38,
+      subjectiveLevel: null,
+      lastAdjusted: null,
       subGoals: [
         { id: 's13', text: 'Deep work blocks most mornings', completed: true },
         { id: 's14', text: 'Decline meetings that could be async', completed: false },
@@ -175,6 +200,8 @@ export const useLifeModel = create<LifeModelState>((set) => ({
       goal: 'Stay curious. Think slowly.',
       targetHours: 4,
       actualHours: 2.5,
+      subjectiveLevel: null,
+      lastAdjusted: null,
       subGoals: [
         { id: 's16', text: 'Read before bed instead of scrolling', completed: true },
         { id: 's17', text: 'One deep-dive topic per month', completed: false },
@@ -187,6 +214,8 @@ export const useLifeModel = create<LifeModelState>((set) => ({
       goal: 'Present, not just available.',
       targetHours: 10,
       actualHours: 6,
+      subjectiveLevel: null,
+      lastAdjusted: null,
       subGoals: [
         { id: 's19', text: 'Undistracted time with Audrey', completed: true },
         { id: 's20', text: 'Call a family member weekly', completed: false },
@@ -199,6 +228,8 @@ export const useLifeModel = create<LifeModelState>((set) => ({
       goal: 'Invest in the people you build with.',
       targetHours: 3,
       actualHours: 2,
+      subjectiveLevel: null,
+      lastAdjusted: null,
       subGoals: [
         { id: 's22', text: 'Meaningful 1:1s, not status updates', completed: true },
         { id: 's23', text: 'Reach out to someone outside your team monthly', completed: false },
@@ -279,4 +310,31 @@ export const useLifeModel = create<LifeModelState>((set) => ({
     })),
 
   setEnergyProfile: (profile) => set({ energyProfile: profile }),
+
+  adjustDomainLevel: (id, level) =>
+    set((state) => ({
+      domains: state.domains.map((d) =>
+        d.id === id
+          ? { ...d, subjectiveLevel: Math.max(0, Math.min(1, level)), lastAdjusted: Date.now() }
+          : d,
+      ),
+    })),
+
+  nudgeDomain: (name, delta) =>
+    set((state) => ({
+      domains: state.domains.map((d) => {
+        if (d.name !== name) return d;
+        const current = d.subjectiveLevel ?? (d.targetHours > 0 ? d.actualHours / d.targetHours : 0.5);
+        return {
+          ...d,
+          subjectiveLevel: Math.max(0, Math.min(1, current + delta)),
+          lastAdjusted: Date.now(),
+        };
+      }),
+    })),
+
+  addDomainEntry: (entry) =>
+    set((state) => ({
+      domainEntries: [entry, ...state.domainEntries],
+    })),
 }));

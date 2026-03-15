@@ -254,10 +254,13 @@ function ProposalRow({ proposal, onAccept, onDefer, onDismiss }: {
 
 // ── Main screen ──
 
+type AgentTab = 'cultivator' | 'sentinel';
+
 export default function AgentScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState<AgentTab>('cultivator');
   const {
     persona,
     setPersona,
@@ -271,12 +274,6 @@ export default function AgentScreen() {
 
   const pendingEscalations = sentinel.pendingEscalations.filter((e) => e.status === 'pending');
   const pendingProposals = cultivator.pendingProposals.filter((p) => p.status === 'pending');
-
-  const stats = [
-    { value: `${sentinel.hoursReclaimed}h`, label: 'Reclaimed' },
-    { value: String(sentinel.declinedThisWeek), label: 'Declined' },
-    { value: String(sentinel.agentAttendedThisWeek), label: 'Agent sent' },
-  ];
 
   return (
     <View style={[styles.container, { backgroundColor: colors.ground }]}>
@@ -302,95 +299,151 @@ export default function AgentScreen() {
           </View>
         </EnterView>
 
-        {/* Persona selector */}
-        <EnterView delay={staggerDelays[1]} style={styles.personaSection}>
-          <TempoText variant="label" color={colors.ink3} style={styles.sectionLabel}>
-            AGENT MODE
-          </TempoText>
-          <View style={styles.personaRow}>
-            {(['guardian', 'pragmatist', 'delegator'] as const).map((id) => (
-              <PersonaChip
-                key={id}
-                id={id}
-                active={persona === id}
-                onPress={() => setPersona(id)}
-              />
-            ))}
-          </View>
-          {persona && <PersonaDetail id={persona} />}
-        </EnterView>
-
-        {/* ── SENTINEL ── */}
-        <View style={[styles.separator, { backgroundColor: colors.border }]} />
-
-        <EnterView delay={staggerDelays[2]}>
-          <TempoText variant="label" color={colors.agent} style={styles.sectionLabel}>
-            SENTINEL
-          </TempoText>
-          <TempoText variant="caption" color={colors.ink2}>
-            Defense {'\u00B7'} intercepted {sentinel.interceptedThisWeek} this week
-          </TempoText>
-        </EnterView>
-
-        {/* Stats row */}
-        <EnterView delay={staggerDelays[2]} style={styles.statsRow}>
-          {stats.map((stat) => (
-            <StatTile key={stat.label} value={stat.value} label={stat.label} />
-          ))}
-        </EnterView>
-
-        {/* Escalations */}
-        {pendingEscalations.length > 0 && (
-          <EnterView delay={staggerDelays[3]} style={styles.escalationSection}>
-            <TempoText variant="label" color={colors.ink3} style={styles.sectionLabel}>
-              NEEDS YOUR DECISION
+        {/* Tab switcher — Cultivator | Sentinel */}
+        <View style={styles.tabRow}>
+          <Pressable
+            onPress={() => setActiveTab('cultivator')}
+            style={[
+              styles.tab,
+              {
+                borderBottomColor: activeTab === 'cultivator' ? colors.accent : 'transparent',
+              },
+            ]}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: activeTab === 'cultivator' }}
+          >
+            <TempoText
+              variant="label"
+              color={activeTab === 'cultivator' ? colors.accent : colors.ink3}
+            >
+              Cultivator
             </TempoText>
-            {pendingEscalations.map((esc) => (
-              <EscalationRow key={esc.id} esc={esc} onResolve={resolveEscalation} />
-            ))}
-          </EnterView>
+            {pendingProposals.length > 0 && (
+              <View style={[styles.badge, { backgroundColor: colors.accent }]}>
+                <TempoText variant="data" color="#FFFFFF">{pendingProposals.length}</TempoText>
+              </View>
+            )}
+          </Pressable>
+          <Pressable
+            onPress={() => setActiveTab('sentinel')}
+            style={[
+              styles.tab,
+              {
+                borderBottomColor: activeTab === 'sentinel' ? colors.agent : 'transparent',
+              },
+            ]}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: activeTab === 'sentinel' }}
+          >
+            <TempoText
+              variant="label"
+              color={activeTab === 'sentinel' ? colors.agent : colors.ink3}
+            >
+              Sentinel
+            </TempoText>
+            {pendingEscalations.length > 0 && (
+              <View style={[styles.badge, { backgroundColor: colors.warning }]}>
+                <TempoText variant="data" color="#FFFFFF">{pendingEscalations.length}</TempoText>
+              </View>
+            )}
+          </Pressable>
+        </View>
+
+        {/* ── CULTIVATOR TAB ── */}
+        {activeTab === 'cultivator' && (
+          <>
+            <EnterView delay={staggerDelays[1]}>
+              <TempoText variant="caption" color={colors.ink2}>
+                Offense {'\u00B7'} {cultivator.bookedThisWeek.length} booked this week
+              </TempoText>
+            </EnterView>
+
+            {/* Pending proposals */}
+            {pendingProposals.length > 0 && (
+              <EnterView delay={staggerDelays[2]} style={styles.proposalSection}>
+                <TempoText variant="label" color={colors.ink3} style={styles.sectionLabel}>
+                  PROPOSALS
+                </TempoText>
+                {pendingProposals.map((p) => (
+                  <ProposalRow
+                    key={p.id}
+                    proposal={p}
+                    onAccept={acceptProposal}
+                    onDefer={deferProposal}
+                    onDismiss={dismissProposal}
+                  />
+                ))}
+              </EnterView>
+            )}
+
+            {pendingProposals.length === 0 && (
+              <EnterView delay={staggerDelays[2]} style={styles.emptyState}>
+                <TempoText variant="body" color={colors.ink3} italic>
+                  Nothing to propose right now. Your week looks balanced.
+                </TempoText>
+              </EnterView>
+            )}
+
+            {/* Persona selector */}
+            <EnterView delay={staggerDelays[3]} style={styles.personaSection}>
+              <TempoText variant="label" color={colors.ink3} style={styles.sectionLabel}>
+                AGENT MODE
+              </TempoText>
+              <View style={styles.personaRow}>
+                {(['guardian', 'pragmatist', 'delegator'] as const).map((id) => (
+                  <PersonaChip
+                    key={id}
+                    id={id}
+                    active={persona === id}
+                    onPress={() => setPersona(id)}
+                  />
+                ))}
+              </View>
+              {persona && <PersonaDetail id={persona} />}
+            </EnterView>
+          </>
         )}
 
-        {/* Recent sentinel actions */}
-        {sentinel.recentActions.length > 0 && (
-          <EnterView delay={staggerDelays[4]} style={styles.feedSection}>
-            <TempoText variant="label" color={colors.ink3} style={styles.sectionLabel}>
-              RECENT ACTIONS
-            </TempoText>
-            {sentinel.recentActions.map((item) => (
-              <ActionRow key={item.id} item={item} />
-            ))}
-          </EnterView>
-        )}
+        {/* ── SENTINEL TAB ── */}
+        {activeTab === 'sentinel' && (
+          <>
+            <EnterView delay={staggerDelays[1]}>
+              <TempoText variant="caption" color={colors.ink2}>
+                Defense {'\u00B7'} intercepted {sentinel.interceptedThisWeek} this week
+              </TempoText>
+            </EnterView>
 
-        {/* ── CULTIVATOR ── */}
-        <View style={[styles.separator, { backgroundColor: colors.border }]} />
+            {/* Stats row */}
+            <EnterView delay={staggerDelays[2]} style={styles.statsRow}>
+              <StatTile value={`${sentinel.hoursReclaimed}h`} label="Reclaimed" />
+              <StatTile value={String(sentinel.declinedThisWeek)} label="Declined" />
+              <StatTile value={String(sentinel.agentAttendedThisWeek)} label="Agent sent" />
+            </EnterView>
 
-        <EnterView delay={staggerDelays[3]}>
-          <TempoText variant="label" color={colors.accent} style={styles.sectionLabel}>
-            CULTIVATOR
-          </TempoText>
-          <TempoText variant="caption" color={colors.ink2}>
-            Offense {'\u00B7'} {cultivator.bookedThisWeek.length} booked this week
-          </TempoText>
-        </EnterView>
+            {/* Escalations */}
+            {pendingEscalations.length > 0 && (
+              <EnterView delay={staggerDelays[3]} style={styles.escalationSection}>
+                <TempoText variant="label" color={colors.ink3} style={styles.sectionLabel}>
+                  NEEDS YOUR DECISION
+                </TempoText>
+                {pendingEscalations.map((esc) => (
+                  <EscalationRow key={esc.id} esc={esc} onResolve={resolveEscalation} />
+                ))}
+              </EnterView>
+            )}
 
-        {/* Pending proposals */}
-        {pendingProposals.length > 0 && (
-          <EnterView delay={staggerDelays[4]} style={styles.proposalSection}>
-            <TempoText variant="label" color={colors.ink3} style={styles.sectionLabel}>
-              PROPOSALS
-            </TempoText>
-            {pendingProposals.map((p) => (
-              <ProposalRow
-                key={p.id}
-                proposal={p}
-                onAccept={acceptProposal}
-                onDefer={deferProposal}
-                onDismiss={dismissProposal}
-              />
-            ))}
-          </EnterView>
+            {/* Recent sentinel actions */}
+            {sentinel.recentActions.length > 0 && (
+              <EnterView delay={staggerDelays[4]} style={styles.feedSection}>
+                <TempoText variant="label" color={colors.ink3} style={styles.sectionLabel}>
+                  RECENT ACTIONS
+                </TempoText>
+                {sentinel.recentActions.map((item) => (
+                  <ActionRow key={item.id} item={item} />
+                ))}
+              </EnterView>
+            )}
+          </>
         )}
       </ScrollView>
     </View>
@@ -410,9 +463,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     paddingBottom: spacing['3xl'],
   },
-  separator: {
-    height: StyleSheet.hairlineWidth,
-    marginVertical: spacing.xl,
+  tabRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginTop: spacing.xl,
+    marginBottom: spacing.xl,
+  },
+  tab: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.base,
+    borderBottomWidth: 2,
+  },
+  badge: {
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.xs,
+  },
+  emptyState: {
+    marginTop: spacing['2xl'],
+    alignItems: 'center',
+    paddingVertical: spacing['2xl'],
   },
   statsRow: {
     flexDirection: 'row',
@@ -491,7 +567,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   personaSection: {
-    marginTop: spacing.xl,
+    marginTop: spacing['2xl'],
   },
   personaRow: {
     flexDirection: 'row',

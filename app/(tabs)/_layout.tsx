@@ -38,21 +38,27 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="patterns"
+        options={{
+          title: 'Patterns',
+        }}
+      />
+      <Tabs.Screen
         name="reflection"
         options={{
-          title: 'Reflect',
+          href: null,
         }}
       />
       <Tabs.Screen
         name="coach"
         options={{
-          title: 'Coach',
+          href: null,
         }}
       />
       <Tabs.Screen
         name="agent"
         options={{
-          title: 'Agent',
+          href: null,
         }}
       />
       <Tabs.Screen
