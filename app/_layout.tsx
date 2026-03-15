@@ -29,11 +29,17 @@ import { useColors } from '../constants/colors';
 import { TEMPO_EASING } from '../constants/motion';
 import { typeScale } from '../constants/typography';
 import { QuickCapture } from '../components/QuickCapture';
+import { useAuthStore } from '../store/authStore';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colors = useColors();
+  const { initialize, user, loading: authLoading } = useAuthStore();
+
+  useEffect(() => {
+    initialize();
+  }, []);
 
   const [fontsLoaded] = useFonts({
     PlayfairDisplay_700Bold,
@@ -119,7 +125,13 @@ export default function RootLayout() {
             contentStyle: { backgroundColor: colors.ground },
             animation: 'fade',
           }}
-        />
+        >
+          {!user && !authLoading ? (
+            <Stack.Screen name="sign-in" options={{ headerShown: false }} />
+          ) : (
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          )}
+        </Stack>
       </Animated.View>
 
       {/* Quick capture — available on all screens */}

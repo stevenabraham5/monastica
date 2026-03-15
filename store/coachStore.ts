@@ -1,4 +1,5 @@
 ﻿import { create } from 'zustand';
+import { getCoachResponse } from '../services/coachLLM';
 
 export interface CoachMessage {
   id: string;
@@ -6,25 +7,6 @@ export interface CoachMessage {
   text: string;
   timestamp: number;
 }
-
-// The coach personality: listens, then cross-examines, looks for patterns and opportunities
-const COACH_RESPONSES: string[] = [
-  'What makes you say that?',
-  'Is that what actually happened, or what you think should have happened?',
-  'What would you do differently if there were no consequences?',
-  'You said something similar last week. Do you see a pattern?',
-  'What are you avoiding by focusing on this?',
-  'That sounds like a constraint you accepted. Is it real?',
-  'If someone you respect described this situation, what would you tell them?',
-  'What is the simplest version of what you actually want here?',
-  'You are describing the problem well. What about the opportunity?',
-  'What would enough look like in this situation?',
-  'Is this urgent, or just loud?',
-  'What did you learn from this that you did not expect?',
-  'Where is the tension between what you want and what you are doing?',
-  'You are being hard on yourself. Is that useful right now?',
-  'What would change if you trusted yourself on this?',
-];
 
 interface CoachState {
   messages: CoachMessage[];
@@ -45,7 +27,7 @@ export const useCoachStore = create<CoachState>((set, get) => ({
   ],
   isThinking: false,
 
-  sendMessage: (text: string) => {
+  sendMessage: async (text: string) => {
     const userMsg: CoachMessage = {
       id: `u-${Date.now()}`,
       role: 'user',
@@ -58,12 +40,9 @@ export const useCoachStore = create<CoachState>((set, get) => ({
       isThinking: true,
     }));
 
-    // Simulate coach response — in production this would hit an LLM API
-    // with the full conversation context + user's tempo data
-    setTimeout(() => {
-      const msgs = get().messages;
-      const seed = msgs.length + text.length;
-      const response = COACH_RESPONSES[seed % COACH_RESPONSES.length];
+    try {
+      const allMessages = [...get().messages];
+      const response = await getCoachResponse(allMessages);
 
       const coachMsg: CoachMessage = {
         id: `c-${Date.now()}`,
@@ -76,7 +55,18 @@ export const useCoachStore = create<CoachState>((set, get) => ({
         messages: [...state.messages, coachMsg],
         isThinking: false,
       }));
-    }, 800 + Math.random() * 600);
+    } catch (e) {
+      const errorMsg: CoachMessage = {
+        id: `c-${Date.now()}`,
+        role: 'coach',
+        text: 'Something went wrong. Try again.',
+        timestamp: Date.now(),
+      };
+      set((state) => ({
+        messages: [...state.messages, errorMsg],
+        isThinking: false,
+      }));
+    }
   },
 
   clearConversation: () =>

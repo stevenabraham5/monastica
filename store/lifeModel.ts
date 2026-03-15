@@ -170,7 +170,6 @@ export const useLifeModel = create<LifeModelState>((set) => ({
       text: 'Energy low all day. Slept badly, skipped gym. But cooked dinner and ate together without screens.',
     },
   ],
-  ],
 
   setIntention: (text) => set({ intention: text }),
 
