@@ -53,14 +53,14 @@ const FLOATING_ICONS = [
   { symbol: '\u2229', tint: '#7889A0', x: '55%', y: '65%', delay: 700 },    // ∩ professional
 ];
 
-function FloatingIcon({ symbol, tint, x, y, delay }: {
-  symbol: string; tint: string; x: string; y: string; delay: number;
+function FloatingIcon({ symbol, tint, x, yPos, delay }: {
+  symbol: string; tint: string; x: string; yPos: string; delay: number;
 }) {
-  const y = useSharedValue(0);
+  const bob = useSharedValue(0);
   const drift = useSharedValue(0);
 
   useEffect(() => {
-    y.value = withDelay(
+    bob.value = withDelay(
       delay,
       withRepeat(
         withSequence(
@@ -83,11 +83,11 @@ function FloatingIcon({ symbol, tint, x, y, delay }: {
   }, []);
 
   const style = useAnimatedStyle(() => ({
-    transform: [{ translateY: y.value }, { translateX: drift.value }],
+    transform: [{ translateY: bob.value }, { translateX: drift.value }],
   }));
 
   return (
-    <Animated.View style={[styles.floatingIcon, { left: x as any, top: y as any }, style]}>
+    <Animated.View style={[styles.floatingIcon, { left: x as any, top: yPos as any }, style]}>
       <TempoText variant="body" style={{ fontSize: 22, color: tint }}>{symbol}</TempoText>
     </Animated.View>
   );
@@ -185,7 +185,7 @@ export function ReflectOcean({ checkinsToday, latestFeeling }: ReflectOceanProps
           symbol={icon.symbol}
           tint={icon.tint}
           x={icon.x}
-          y={icon.y}
+          yPos={icon.y}
           delay={icon.delay}
         />
       ))}
