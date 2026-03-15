@@ -283,7 +283,7 @@ export default function NowScreen() {
       </View>
 
       {/* Bottom-justified domains section */}
-      <View style={[styles.bottomSection, { paddingBottom: spacing.lg }]}>
+      <View style={[styles.bottomSection, { paddingBottom: insets.bottom + 60 }]}>
         <View style={styles.tempoHeader}>
           <TempoText variant="label" color={colors.ink3}>TEMPO</TempoText>
           <TempoText variant="heading" color={colors.accent}>{tempoScore}%</TempoText>
@@ -427,8 +427,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
   },
   bottomSection: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
     alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
   },
   headerRow: {
     flexDirection: 'row',

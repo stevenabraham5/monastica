@@ -66,7 +66,7 @@ export function GoalCard({
       onPress={onPress}
       style={({ pressed }) => [
         styles.card,
-        { backgroundColor: colors.surface, borderColor: pressed ? visual.tint : colors.border },
+        { backgroundColor: 'rgba(255, 255, 255, 0.25)', borderColor: pressed ? visual.tint : 'rgba(255, 255, 255, 0.3)' },
         pressed && { opacity: 0.85 },
       ]}
       accessibilityLabel={`${domain}`}
