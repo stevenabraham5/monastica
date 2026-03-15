@@ -222,7 +222,7 @@ export default function PatternsScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: colors.ground }]}
+      style={[styles.container, { backgroundColor: colors.adaptGround }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={insets.bottom + 52}
     >

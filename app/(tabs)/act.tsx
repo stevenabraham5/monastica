@@ -178,7 +178,7 @@ export default function ActScreen() {
   }, []);
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.ground }]}>
+    <View style={[styles.container, { backgroundColor: colors.actGround }]}>
       <StatusBar style="dark" />
       <ScrollView
         contentContainerStyle={[

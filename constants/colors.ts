@@ -24,6 +24,11 @@ const light = {
   success: '#3A7D5C',
   warning: '#8B6914',
   danger: '#8B2E2E',
+
+  // Tab hues
+  reflectGround: '#FAFAF6',
+  actGround: '#F6F8FB',
+  adaptGround: '#F6FAF7',
 } as const;
 
 const dark = {
@@ -45,6 +50,10 @@ const dark = {
   success: '#3A7D5C',
   warning: '#8B6914',
   danger: '#8B2E2E',
+
+  reflectGround: '#18170F',
+  actGround: '#111419',
+  adaptGround: '#111812',
 } as const;
 
 export type Colors = typeof light & typeof dark;

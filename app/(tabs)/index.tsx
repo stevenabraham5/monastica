@@ -216,7 +216,7 @@ export default function NowScreen() {
   const lastReflection = reflections.length > 0 ? reflections[0] : null;
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.ground }]}>
+    <View style={[styles.container, { backgroundColor: colors.reflectGround }]}>
       <StatusBar style="dark" />
       <ScrollView
         contentContainerStyle={[
