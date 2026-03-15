@@ -387,22 +387,36 @@ export default function NowScreen() {
             </TempoText>
             {sentinel.recentActions.slice(0, 3).map((item) => {
               const actionLabels: Record<string, string> = {
-                declined: 'Declined', deflected_async: 'Async',
+                declined: 'Declined', deflected_async: 'Sent async',
                 agent_attended: 'Agent sent', interrogated: 'Clarified', accepted: 'Accepted',
               };
               return (
                 <View key={item.id} style={[styles.sentinelRow, { borderBottomColor: colors.border }]}>
                   <View style={styles.sentinelRowInner}>
-                    <TempoText variant="label" color={colors.agent}>
-                      {actionLabels[item.actionType] ?? item.actionType}
-                    </TempoText>
-                    <TempoText variant="caption" color={colors.ink2} numberOfLines={1} style={{ flex: 1 }}>
+                    <TempoText variant="body" numberOfLines={1} style={{ flex: 1 }}>
                       {item.meetingTitle}
+                    </TempoText>
+                    <TempoText variant="caption" color={colors.agent}>
+                      {actionLabels[item.actionType] ?? item.actionType}
                     </TempoText>
                     {item.minutesSaved != null && (
                       <TempoText variant="data" color={colors.ink3}>{item.minutesSaved}m</TempoText>
                     )}
                   </View>
+                  {item.clarificationQuestions && item.clarificationQuestions.length > 0 && (
+                    <View style={{ marginTop: spacing.xs }}>
+                      {item.clarificationQuestions.map((q, qi) => (
+                        <TempoText key={qi} variant="caption" color={colors.ink3}>
+                          {'\u2192'} {q}
+                        </TempoText>
+                      ))}
+                    </View>
+                  )}
+                  {item.agentScopeCard && (
+                    <TempoText variant="caption" color={colors.ink3} style={{ marginTop: spacing.xs }}>
+                      Agent scope: {item.agentScopeCard.canAgreeToItems.join(', ')}
+                    </TempoText>
+                  )}
                 </View>
               );
             })}
