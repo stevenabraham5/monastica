@@ -14,20 +14,21 @@ import { useColors } from '../constants/colors';
 import { spacing } from '../constants/spacing';
 
 /*
-  ReflectOcean — a calm blue surface with animated ripple rings.
+  ReflectOcean — water with a land mass, a bobbing ship,
+  and Tempo domain icons floating on the surface.
 
-  The number of visible ripples corresponds to today's check-in count (0-3).
-  The overall tint shifts subtly based on the latest feeling.
-  Three concentric ripple rings pulse outward from center — like dropping
-  a thought into still water.
+  - Horizon divides sky (light) from water (tinted by feeling).
+  - A rounded landmass sits right of center.
+  - A small ship outline bobs on the water left of center.
+  - Domain icons (emoji circles) drift gently on the water surface.
+  - Check-in count shown in corner.
 */
 
 interface ReflectOceanProps {
-  checkinsToday: number;  // 0..3+
+  checkinsToday: number;
   latestFeeling: string | null;
 }
 
-// Feeling → water tint
 const FEELING_TINTS: Record<string, string> = {
   rested:    '#7EB8D4',
   focused:   '#6EA8C8',
@@ -39,27 +40,41 @@ const FEELING_TINTS: Record<string, string> = {
   restless:  '#7898AA',
 };
 
-function Ripple({ delay, size, color }: { delay: number; size: number; color: string }) {
-  const scale = useSharedValue(0.3);
-  const opacity = useSharedValue(0.6);
+// Domain icons that float on the water
+const FLOATING_ICONS = [
+  { emoji: '\u{1F4A4}', x: '12%', delay: 0 },      // sleep
+  { emoji: '\u{1F3C3}', x: '28%', delay: 400 },     // movement
+  { emoji: '\u{1F957}', x: '42%', delay: 800 },     // nourishment
+  { emoji: '\u{1F3A8}', x: '58%', delay: 200 },     // creative
+  { emoji: '\u{1F4BB}', x: '72%', delay: 600 },     // work
+  { emoji: '\u{1F4D6}', x: '85%', delay: 1000 },    // learning
+  { emoji: '\u2764\uFE0F', x: '20%', delay: 300 },  // people
+  { emoji: '\u{1F91D}', x: '68%', delay: 700 },     // professional rel
+];
+
+function FloatingIcon({ emoji, x, delay, waterColor }: {
+  emoji: string; x: string; delay: number; waterColor: string;
+}) {
+  const y = useSharedValue(0);
+  const drift = useSharedValue(0);
 
   useEffect(() => {
-    scale.value = withDelay(
+    y.value = withDelay(
       delay,
       withRepeat(
         withSequence(
-          withTiming(1, { duration: 3000, easing: Easing.out(Easing.quad) }),
-          withTiming(0.3, { duration: 0 }),
+          withTiming(-4, { duration: 2200, easing: Easing.inOut(Easing.sin) }),
+          withTiming(4, { duration: 2200, easing: Easing.inOut(Easing.sin) }),
         ),
         -1,
       ),
     );
-    opacity.value = withDelay(
-      delay,
+    drift.value = withDelay(
+      delay + 200,
       withRepeat(
         withSequence(
-          withTiming(0, { duration: 3000, easing: Easing.out(Easing.quad) }),
-          withTiming(0.6, { duration: 0 }),
+          withTiming(3, { duration: 3000, easing: Easing.inOut(Easing.sin) }),
+          withTiming(-3, { duration: 3000, easing: Easing.inOut(Easing.sin) }),
         ),
         -1,
       ),
@@ -67,59 +82,111 @@ function Ripple({ delay, size, color }: { delay: number; size: number; color: st
   }, []);
 
   const style = useAnimatedStyle(() => ({
-    width: size,
-    height: size,
-    borderRadius: size / 2,
-    borderWidth: 1.5,
-    borderColor: color,
-    opacity: opacity.value,
-    transform: [{ scale: scale.value }],
-    position: 'absolute' as const,
+    transform: [{ translateY: y.value }, { translateX: drift.value }],
   }));
 
-  return <Animated.View style={style} />;
+  return (
+    <Animated.View style={[styles.floatingIcon, { left: x as any }, style]}>
+      <TempoText variant="caption" style={{ fontSize: 14 }}>{emoji}</TempoText>
+    </Animated.View>
+  );
+}
+
+function BobbingShip({ waterColor }: { waterColor: string }) {
+  const colors = useColors();
+  const bob = useSharedValue(0);
+  const tilt = useSharedValue(0);
+
+  useEffect(() => {
+    bob.value = withRepeat(
+      withSequence(
+        withTiming(-5, { duration: 2000, easing: Easing.inOut(Easing.sin) }),
+        withTiming(5, { duration: 2000, easing: Easing.inOut(Easing.sin) }),
+      ),
+      -1,
+    );
+    tilt.value = withRepeat(
+      withSequence(
+        withTiming(4, { duration: 2400, easing: Easing.inOut(Easing.sin) }),
+        withTiming(-4, { duration: 2400, easing: Easing.inOut(Easing.sin) }),
+      ),
+      -1,
+    );
+  }, []);
+
+  const shipStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateY: bob.value },
+      { rotate: `${tilt.value}deg` },
+    ],
+  }));
+
+  return (
+    <Animated.View style={[styles.ship, shipStyle]}>
+      {/* Hull — a simple curved line */}
+      <View style={[styles.hull, { borderColor: colors.ink3 }]} />
+      {/* Mast */}
+      <View style={[styles.mast, { backgroundColor: colors.ink3 }]} />
+      {/* Sail — a small triangle approximated with a rotated square */}
+      <View style={[styles.sail, { borderColor: colors.ink3, borderRightColor: 'transparent' }]} />
+    </Animated.View>
+  );
 }
 
 export function ReflectOcean({ checkinsToday, latestFeeling }: ReflectOceanProps) {
   const colors = useColors();
   const waterColor = (latestFeeling && FEELING_TINTS[latestFeeling]) || '#7EB8D4';
-  const rippleCount = Math.min(checkinsToday, 3);
 
-  // Gentle horizon line sway
-  const horizonX = useSharedValue(0);
+  // Gentle wave motion for the water surface
+  const waveX = useSharedValue(0);
   useEffect(() => {
-    horizonX.value = withRepeat(
+    waveX.value = withRepeat(
       withSequence(
-        withTiming(6, { duration: 4000, easing: Easing.inOut(Easing.sin) }),
-        withTiming(-6, { duration: 4000, easing: Easing.inOut(Easing.sin) }),
+        withTiming(8, { duration: 3500, easing: Easing.inOut(Easing.sin) }),
+        withTiming(-8, { duration: 3500, easing: Easing.inOut(Easing.sin) }),
       ),
       -1,
     );
   }, []);
 
   const horizonStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: horizonX.value }],
+    transform: [{ translateX: waveX.value }],
   }));
 
   return (
-    <View style={[styles.container, { backgroundColor: waterColor + '12' }]}>
-      {/* Horizon */}
-      <Animated.View style={[styles.horizon, { backgroundColor: waterColor + '30' }, horizonStyle]} />
+    <View style={[styles.container, { backgroundColor: waterColor + '08' }]}>
+      {/* Sky */}
+      <View style={[styles.sky, { backgroundColor: waterColor + '06' }]} />
 
-      {/* Water surface gradient bands */}
-      <View style={[styles.band, styles.bandTop, { backgroundColor: waterColor + '08' }]} />
-      <View style={[styles.band, styles.bandMid, { backgroundColor: waterColor + '14' }]} />
-      <View style={[styles.band, styles.bandBot, { backgroundColor: waterColor + '20' }]} />
+      {/* Horizon line */}
+      <Animated.View style={[styles.horizon, { backgroundColor: waterColor + '35' }, horizonStyle]} />
 
-      {/* Ripples — one per check-in today */}
-      <View style={styles.rippleCenter}>
-        {rippleCount >= 1 && <Ripple delay={0} size={80} color={waterColor} />}
-        {rippleCount >= 2 && <Ripple delay={600} size={130} color={waterColor + 'AA'} />}
-        {rippleCount >= 3 && <Ripple delay={1200} size={180} color={waterColor + '66'} />}
-        {rippleCount === 0 && (
-          <View style={[styles.stillDot, { backgroundColor: waterColor + '40' }]} />
-        )}
+      {/* Water surface */}
+      <View style={[styles.water, { backgroundColor: waterColor + '18' }]} />
+
+      {/* Wave lines — thin horizontal strokes suggesting movement */}
+      <View style={[styles.waveLine, styles.wave1, { backgroundColor: waterColor + '20' }]} />
+      <View style={[styles.waveLine, styles.wave2, { backgroundColor: waterColor + '15' }]} />
+      <View style={[styles.waveLine, styles.wave3, { backgroundColor: waterColor + '12' }]} />
+
+      {/* Land mass — rounded shape on the right, above the horizon */}
+      <View style={[styles.landmass, { backgroundColor: colors.border }]}>
+        <View style={[styles.landPeak, { backgroundColor: colors.border }]} />
       </View>
+
+      {/* Ship — bobbing left of center */}
+      <BobbingShip waterColor={waterColor} />
+
+      {/* Floating domain icons on the water */}
+      {FLOATING_ICONS.map((icon) => (
+        <FloatingIcon
+          key={icon.emoji}
+          emoji={icon.emoji}
+          x={icon.x}
+          delay={icon.delay}
+          waterColor={waterColor}
+        />
+      ))}
 
       {/* Check-in count */}
       <View style={styles.countRow}>
@@ -133,47 +200,119 @@ export function ReflectOcean({ checkinsToday, latestFeeling }: ReflectOceanProps
 
 const styles = StyleSheet.create({
   container: {
-    height: 200,
+    height: 220,
     overflow: 'hidden',
     position: 'relative',
     borderRadius: 16,
   },
+  sky: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '40%',
+  },
   horizon: {
     position: 'absolute',
-    top: '35%',
+    top: '40%',
     left: -20,
     right: -20,
     height: 1,
   },
-  band: {
+  water: {
     position: 'absolute',
+    top: '40%',
     left: 0,
     right: 0,
-  },
-  bandTop: {
-    top: 0,
-    height: '35%',
-  },
-  bandMid: {
-    top: '35%',
-    height: '30%',
-  },
-  bandBot: {
-    top: '65%',
     bottom: 0,
-    height: '35%',
   },
-  rippleCenter: {
+  waveLine: {
     position: 'absolute',
-    top: '35%',
-    left: '50%',
-    alignItems: 'center',
-    justifyContent: 'center',
+    left: '15%',
+    height: 1,
+    borderRadius: 0.5,
   },
-  stillDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+  wave1: {
+    top: '52%',
+    width: '30%',
+  },
+  wave2: {
+    top: '64%',
+    left: '40%',
+    width: '25%',
+  },
+  wave3: {
+    top: '76%',
+    left: '20%',
+    width: '35%',
+  },
+  // Land mass — right side, rounded hill
+  landmass: {
+    position: 'absolute',
+    right: '8%',
+    top: '25%',
+    width: 70,
+    height: 35,
+    borderTopLeftRadius: 35,
+    borderTopRightRadius: 25,
+    borderBottomLeftRadius: 4,
+    borderBottomRightRadius: 4,
+  },
+  landPeak: {
+    position: 'absolute',
+    left: 15,
+    top: -12,
+    width: 30,
+    height: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 15,
+  },
+  // Ship
+  ship: {
+    position: 'absolute',
+    left: '25%',
+    top: '34%',
+    alignItems: 'center',
+    width: 28,
+    height: 30,
+  },
+  hull: {
+    position: 'absolute',
+    bottom: 0,
+    width: 24,
+    height: 10,
+    borderWidth: 1.5,
+    borderTopWidth: 0,
+    borderBottomLeftRadius: 8,
+    borderBottomRightRadius: 8,
+    backgroundColor: 'transparent',
+  },
+  mast: {
+    position: 'absolute',
+    bottom: 8,
+    width: 1.5,
+    height: 20,
+    borderRadius: 0.75,
+  },
+  sail: {
+    position: 'absolute',
+    bottom: 14,
+    left: 14,
+    width: 0,
+    height: 0,
+    borderTopWidth: 0,
+    borderBottomWidth: 12,
+    borderLeftWidth: 0,
+    borderRightWidth: 8,
+    borderBottomColor: 'transparent',
+    borderTopColor: 'transparent',
+    borderLeftColor: 'transparent',
+    backgroundColor: 'transparent',
+  },
+  // Floating icons
+  floatingIcon: {
+    position: 'absolute',
+    top: '43%',
   },
   countRow: {
     position: 'absolute',

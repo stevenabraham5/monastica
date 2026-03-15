@@ -14,6 +14,32 @@ import { useLifeModel } from '../../store/lifeModel';
 import { CATEGORY_COLORS, CATEGORY_LABELS, ROLE_COLORS } from '../../store/types';
 import type { BookingProposal, Escalation } from '../../store/types';
 
+// ── Agent-simulated responses ──
+
+const ESCALATION_RESPONSES: Record<string, string> = {
+  protected_block_conflict: 'This conflicts with your deep-work block. I can ask for an async alternative or suggest a 15-min slot outside your protected time.',
+  first_time_organizer: 'First time this person has invited you. I\u2019ll ask for context before committing your time.',
+  relationship_critical: 'This person is on your critical list. I\u2019d attend this one \u2014 the relationship value outweighs the time cost.',
+  no_agenda: 'No agenda provided. I\u2019ll request one before you decide.',
+  below_confidence_threshold: 'Low confidence on this one. Let me gather more context before recommending.',
+  outside_policy: 'This falls outside your standing policies. Your call.',
+  confidential_or_legal: 'Flagged as sensitive. You should handle this directly.',
+};
+
+const PROPOSAL_RESPONSES: Record<string, string> = {
+  mind_thought_partner: 'I found a 45-min gap tomorrow during your peak energy window. Want me to block it?',
+  body_maintenance: 'Your movement is lagging \u2014 I\u2019ve spotted a 30-min window after your 2pm. Should I book it?',
+  serendipity: 'You haven\u2019t had unstructured time in 11 days. I can protect a 1-hour wander block Friday afternoon.',
+  relationships_mentor: 'David hasn\u2019t heard from you in 34 days. I can draft a "quick call?" message and hold a slot Thursday.',
+  body_appointment: 'I can schedule this and send you a reminder the day before.',
+  mind_deep_work: 'I\u2019ll carve out a deep-work block during your peak hours.',
+  relationships_maintenance: 'I\u2019ll find a low-energy slot for this catch-up.',
+  professional_craft: 'I can block craft time during your best focus window.',
+  self_knowledge: 'I\u2019ll protect some space for this.',
+  life_logistics: 'I\u2019ll handle the scheduling and remind you.',
+  recovery: 'Recovery time booked \u2014 I\u2019ll guard it.',
+};
+
 // ── Action item types ──
 
 interface ActionItem {
@@ -171,12 +197,28 @@ export default function ActScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const actions = useActions();
+  const { sentinel, cultivator, resolveEscalation, acceptProposal } = useAgentStore();
   const [agentResponses, setAgentResponses] = useState<Record<string, string>>({});
 
   const handleActionTap = useCallback((item: ActionItem) => {
     const resp = getAgentResponse(item.type);
     setAgentResponses((prev) => ({ ...prev, [item.id]: resp }));
   }, []);
+
+  const handleEscalationTap = useCallback((esc: Escalation) => {
+    const resp = ESCALATION_RESPONSES[esc.reason] ?? 'Looking into this for you...';
+    setAgentResponses((prev) => ({ ...prev, [esc.id]: resp }));
+    setTimeout(() => resolveEscalation(esc.id, esc.suggestedAction), 3000);
+  }, [resolveEscalation]);
+
+  const handleProposalTap = useCallback((p: BookingProposal) => {
+    const resp = PROPOSAL_RESPONSES[p.category] ?? 'I\u2019ll handle this for you.';
+    setAgentResponses((prev) => ({ ...prev, [p.id]: resp }));
+    setTimeout(() => acceptProposal(p.id), 3000);
+  }, [acceptProposal]);
+
+  const pendingEscalations = sentinel.pendingEscalations.filter((e) => e.status === 'pending');
+  const pendingProposals = cultivator.pendingProposals.filter((p) => p.status === 'pending');
 
   return (
     <View style={[styles.container, { backgroundColor: colors.actGround }]}>
@@ -199,8 +241,90 @@ export default function ActScreen() {
 
         {/* Field hero */}
         <EnterView delay={staggerDelays[0]} style={{ marginTop: spacing.xl }}>
-          <ActField actionCount={actions.length} completedToday={0} />
+          <ActField actionCount={actions.length + pendingEscalations.length + pendingProposals.length} completedToday={0} />
         </EnterView>
+
+        {/* Escalations — needs your decision */}
+        {pendingEscalations.length > 0 && (
+          <EnterView delay={staggerDelays[1]} style={styles.actSection}>
+            <TempoText variant="label" color={colors.ink3} style={styles.sectionLabel}>
+              NEEDS YOUR DECISION
+            </TempoText>
+            {pendingEscalations.map((esc) => {
+              const roleColor = ROLE_COLORS[esc.roleClassification ?? 'unknown'] || '#888780';
+              return (
+                <ActionCard
+                  key={esc.id}
+                  item={{ id: esc.id, type: 'escalation', priority: 0, title: esc.meetingTitle, subtitle: `${esc.organizer} \u00B7 ${esc.sentinelConfidence}%`, tint: roleColor }}
+                  onTap={() => handleEscalationTap(esc)}
+                  agentResponse={agentResponses[esc.id] ?? null}
+                />
+              );
+            })}
+          </EnterView>
+        )}
+
+        {/* Proposals — Tempo found time */}
+        {pendingProposals.length > 0 && (
+          <EnterView delay={staggerDelays[2]} style={styles.actSection}>
+            <TempoText variant="label" color={colors.ink3} style={styles.sectionLabel}>
+              TEMPO FOUND TIME
+            </TempoText>
+            {pendingProposals.map((p) => {
+              const catColor = CATEGORY_COLORS[p.category] ?? '#888780';
+              const catLabel = CATEGORY_LABELS[p.category] ?? p.category;
+              return (
+                <ActionCard
+                  key={p.id}
+                  item={{ id: p.id, type: 'proposal', priority: 1, title: p.title, subtitle: catLabel, tint: catColor }}
+                  onTap={() => handleProposalTap(p)}
+                  agentResponse={agentResponses[p.id] ?? null}
+                />
+              );
+            })}
+          </EnterView>
+        )}
+
+        {/* Sentinel summary */}
+        {sentinel.recentActions.length > 0 && (
+          <EnterView delay={staggerDelays[3]} style={styles.actSection}>
+            <TempoText variant="label" color={colors.ink3} style={styles.sectionLabel}>
+              SENTINEL {'\u00B7'} {sentinel.hoursReclaimed}h reclaimed
+            </TempoText>
+            {sentinel.recentActions.slice(0, 3).map((item) => {
+              const actionLabels: Record<string, string> = {
+                declined: 'Declined', deflected_async: 'Sent async',
+                agent_attended: 'Agent sent', interrogated: 'Clarified', accepted: 'Accepted',
+              };
+              return (
+                <View key={item.id} style={[styles.sentinelRow, { borderBottomColor: colors.border }]}>
+                  <View style={styles.sentinelRowInner}>
+                    <TempoText variant="body" numberOfLines={1} style={{ flex: 1 }}>
+                      {item.meetingTitle}
+                    </TempoText>
+                    <TempoText variant="caption" color={colors.agent}>
+                      {actionLabels[item.actionType] ?? item.actionType}
+                    </TempoText>
+                    {item.minutesSaved != null && (
+                      <TempoText variant="data" color={colors.ink3}>{item.minutesSaved}m</TempoText>
+                    )}
+                  </View>
+                  {item.clarificationQuestions && item.clarificationQuestions.length > 0 && (
+                    <View style={{ marginTop: spacing.xs }}>
+                      {item.clarificationQuestions.map((q, qi) => (
+                        <TempoText key={qi} variant="caption" color={colors.ink3}>
+                          {'\u2192'} {q}
+                        </TempoText>
+                      ))}
+                    </View>
+                  )}
+                </View>
+              );
+            })}
+          </EnterView>
+        )}
+
+        {/* Prioritized actions */}
 
         {actions.length > 0 ? (
           <View style={styles.list}>
@@ -239,6 +363,21 @@ const styles = StyleSheet.create({
   },
   list: {
     marginTop: spacing.xl,
+    gap: spacing.sm,
+  },
+  actSection: {
+    marginTop: spacing['2xl'],
+  },
+  sectionLabel: {
+    marginBottom: spacing.sm,
+  },
+  sentinelRow: {
+    paddingVertical: spacing.sm,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  sentinelRowInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: spacing.sm,
   },
   card: {

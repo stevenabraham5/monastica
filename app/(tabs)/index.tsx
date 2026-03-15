@@ -136,7 +136,7 @@ export default function NowScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const {
-    domains, intention, setIntention, addCheckin, lastCheckin,
+    domains, addCheckin, lastCheckin,
     adjustDomainLevel, addDomainEntry, domainEntries,
     reflections, addReflection, updateReflection, checkins,
   } = useLifeModel();
@@ -148,8 +148,7 @@ export default function NowScreen() {
   const [selectedFeeling, setSelectedFeeling] = useState<string | null>(lastCheckin?.feeling ?? null);
   const [sheetDomain, setSheetDomain] = useState<Domain | null>(null);
   const [reflectionText, setReflectionText] = useState('');
-  // Track which items the agent has responded to
-  const [agentResponses, setAgentResponses] = useState<Record<string, string>>({});
+  const [reflectOpen, setReflectOpen] = useState(false);
 
   const handleFeeling = (f: string) => {
     setSelectedFeeling(f);
@@ -185,27 +184,6 @@ export default function NowScreen() {
       timestamp: Date.now(),
     });
   };
-
-  const handleEscalationTap = (esc: Escalation) => {
-    const resp = ESCALATION_RESPONSES[esc.reason] ?? 'Looking into this for you...';
-    setAgentResponses((prev) => ({ ...prev, [esc.id]: resp }));
-    // Auto-resolve with suggested action after agent responds
-    setTimeout(() => {
-      resolveEscalation(esc.id, esc.suggestedAction);
-    }, 3000);
-  };
-
-  const handleProposalTap = (p: BookingProposal) => {
-    const resp = PROPOSAL_RESPONSES[p.category] ?? 'I\u2019ll handle this for you.';
-    setAgentResponses((prev) => ({ ...prev, [p.id]: resp }));
-    // Auto-accept after agent responds
-    setTimeout(() => {
-      acceptProposal(p.id);
-    }, 3000);
-  };
-
-  const pendingProposals = cultivator.pendingProposals.filter((p) => p.status === 'pending');
-  const pendingEscalations = sentinel.pendingEscalations.filter((e) => e.status === 'pending');
 
   // Overall tempo score
   const tempoScore = Math.round(
@@ -288,157 +266,66 @@ export default function NowScreen() {
           </ScrollView>
         </EnterView>
 
-        {/* Present-moment check-in */}
+        {/* Reflect — single button that expands to feeling chips + unified input */}
         <EnterView delay={staggerDelays[1]} style={styles.section}>
-          <TempoText variant="display-lg" italic>How are you right now?</TempoText>
-          <View style={styles.feelingsRow}>
-            {FEELINGS.map((f) => (
-              <Pressable
-                key={f}
-                onPress={() => handleFeeling(f)}
-                style={[
-                  styles.feelingChip,
-                  {
-                    backgroundColor: selectedFeeling === f ? colors.accent : colors.surface,
-                    borderColor: selectedFeeling === f ? colors.accent : colors.border,
-                  },
-                ]}
-                accessibilityRole="button"
-                accessibilityState={{ selected: selectedFeeling === f }}
-              >
-                <TempoText variant="caption" color={selectedFeeling === f ? '#FFFFFF' : colors.ink2}>
-                  {f}
-                </TempoText>
-              </Pressable>
-            ))}
-          </View>
-        </EnterView>
-
-        {/* Contextual prompt */}
-        {selectedFeeling && (
-          <EnterView delay={staggerDelays[2]} style={styles.section}>
-            <TempoInput
-              variant="body"
-              placeholder={FEELING_PROMPTS[selectedFeeling]}
-              multiline
-              value={intention}
-              onChangeText={setIntention}
-              onSubmit={(text) => setIntention(text)}
-            />
-          </EnterView>
-        )}
-
-        {/* Reflection */}
-        {selectedFeeling && (
-          <EnterView delay={staggerDelays[3]} style={styles.section}>
-            <TempoInput
-              variant="body"
-              placeholder="What just happened? Say it plainly..."
-              multiline
-              numberOfLines={2}
-              value={reflectionText}
-              onChangeText={setReflectionText}
-              onSubmit={submitReflection}
-            />
-            {/* Agent response to most recent reflection */}
-            {lastReflection?.agentResponse && (
-              <View style={[styles.agentBubble, { backgroundColor: colors.surface, marginTop: spacing.md }]}>
-                <TempoText variant="caption" color={colors.agent}>
-                  {lastReflection.agentResponse}
-                </TempoText>
+          {!reflectOpen ? (
+            <Pressable
+              onPress={() => setReflectOpen(true)}
+              style={[styles.reflectButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+              accessibilityRole="button"
+            >
+              <TempoText variant="display-lg" italic>How are you right now?</TempoText>
+            </Pressable>
+          ) : (
+            <View>
+              <TempoText variant="display-lg" italic>How are you right now?</TempoText>
+              <View style={styles.feelingsRow}>
+                {FEELINGS.map((f) => (
+                  <Pressable
+                    key={f}
+                    onPress={() => handleFeeling(f)}
+                    style={[
+                      styles.feelingChip,
+                      {
+                        backgroundColor: selectedFeeling === f ? colors.accent : colors.surface,
+                        borderColor: selectedFeeling === f ? colors.accent : colors.border,
+                      },
+                    ]}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: selectedFeeling === f }}
+                  >
+                    <TempoText variant="caption" color={selectedFeeling === f ? '#FFFFFF' : colors.ink2}>
+                      {f}
+                    </TempoText>
+                  </Pressable>
+                ))}
               </View>
-            )}
-          </EnterView>
-        )}
 
-        {/* Sentinel escalations — compact tappable rows */}
-        {pendingEscalations.length > 0 && (
-          <EnterView delay={staggerDelays[4]} style={styles.section}>
-            <TempoText variant="label" color={colors.ink3} style={styles.sectionLabel}>
-              NEEDS YOUR DECISION
-            </TempoText>
-            {pendingEscalations.map((esc) => {
-              const roleColor = esc.roleClassification ? ROLE_COLORS[esc.roleClassification] : colors.ink3;
-              return (
-                <AgentRow
-                  key={esc.id}
-                  title={esc.meetingTitle}
-                  subtitle={`${esc.organizer} \u00B7 ${esc.sentinelConfidence}%`}
-                  tint={roleColor}
-                  onTap={() => handleEscalationTap(esc)}
-                  agentResponse={agentResponses[esc.id] ?? null}
-                />
-              );
-            })}
-          </EnterView>
-        )}
-
-        {/* Cultivator proposals — compact tappable rows */}
-        {pendingProposals.length > 0 && (
-          <EnterView delay={staggerDelays[4]} style={styles.section}>
-            <TempoText variant="label" color={colors.ink3} style={styles.sectionLabel}>
-              TEMPO FOUND TIME
-            </TempoText>
-            {pendingProposals.map((p) => {
-              const catColor = CATEGORY_COLORS[p.category] ?? colors.ink3;
-              const catLabel = CATEGORY_LABELS[p.category] ?? p.category;
-              return (
-                <AgentRow
-                  key={p.id}
-                  title={p.title}
-                  subtitle={catLabel}
-                  tint={catColor}
-                  onTap={() => handleProposalTap(p)}
-                  agentResponse={agentResponses[p.id] ?? null}
-                />
-              );
-            })}
-          </EnterView>
-        )}
-
-        {/* Sentinel summary */}
-        {sentinel.recentActions.length > 0 && (
-          <EnterView delay={staggerDelays[4]} style={styles.section}>
-            <TempoText variant="label" color={colors.ink3} style={styles.sectionLabel}>
-              SENTINEL {'\u00B7'} {sentinel.hoursReclaimed}h reclaimed
-            </TempoText>
-            {sentinel.recentActions.slice(0, 3).map((item) => {
-              const actionLabels: Record<string, string> = {
-                declined: 'Declined', deflected_async: 'Sent async',
-                agent_attended: 'Agent sent', interrogated: 'Clarified', accepted: 'Accepted',
-              };
-              return (
-                <View key={item.id} style={[styles.sentinelRow, { borderBottomColor: colors.border }]}>
-                  <View style={styles.sentinelRowInner}>
-                    <TempoText variant="body" numberOfLines={1} style={{ flex: 1 }}>
-                      {item.meetingTitle}
-                    </TempoText>
-                    <TempoText variant="caption" color={colors.agent}>
-                      {actionLabels[item.actionType] ?? item.actionType}
-                    </TempoText>
-                    {item.minutesSaved != null && (
-                      <TempoText variant="data" color={colors.ink3}>{item.minutesSaved}m</TempoText>
-                    )}
-                  </View>
-                  {item.clarificationQuestions && item.clarificationQuestions.length > 0 && (
-                    <View style={{ marginTop: spacing.xs }}>
-                      {item.clarificationQuestions.map((q, qi) => (
-                        <TempoText key={qi} variant="caption" color={colors.ink3}>
-                          {'\u2192'} {q}
-                        </TempoText>
-                      ))}
+              {/* Combined input — contextual prompt + reflection in one field */}
+              {selectedFeeling && (
+                <View style={{ marginTop: spacing.lg }}>
+                  <TempoInput
+                    variant="body"
+                    placeholder={FEELING_PROMPTS[selectedFeeling]}
+                    multiline
+                    numberOfLines={3}
+                    value={reflectionText}
+                    onChangeText={setReflectionText}
+                    onSubmit={submitReflection}
+                  />
+                  {/* Agent response to most recent reflection */}
+                  {lastReflection?.agentResponse && (
+                    <View style={[styles.agentBubble, { backgroundColor: colors.surface, marginTop: spacing.md }]}>
+                      <TempoText variant="caption" color={colors.agent}>
+                        {lastReflection.agentResponse}
+                      </TempoText>
                     </View>
                   )}
-                  {item.agentScopeCard && (
-                    <TempoText variant="caption" color={colors.ink3} style={{ marginTop: spacing.xs }}>
-                      Agent scope: {item.agentScopeCard.canAgreeToItems.join(', ')}
-                    </TempoText>
-                  )}
                 </View>
-              );
-            })}
-          </EnterView>
-        )}
+              )}
+            </View>
+          )}
+        </EnterView>
       </ScrollView>
 
       {/* Domain detail sheet */}
@@ -493,6 +380,13 @@ const styles = StyleSheet.create({
   },
   pulseRow: {
     gap: spacing.sm,
+  },
+  reflectButton: {
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.xl,
+    borderRadius: 16,
+    borderWidth: 1,
+    alignItems: 'center',
   },
   // Agent row — compact tappable item
   agentRow: {
