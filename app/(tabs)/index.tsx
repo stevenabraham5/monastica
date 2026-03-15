@@ -172,6 +172,14 @@ export default function NowScreen() {
   const pendingProposals = cultivator.pendingProposals.filter((p) => p.status === 'pending');
   const pendingEscalations = sentinel.pendingEscalations.filter((e) => e.status === 'pending');
 
+  // Overall tempo score — average of all domain levels
+  const tempoScore = Math.round(
+    domains.reduce((sum, d) => {
+      const level = d.subjectiveLevel ?? (d.targetHours > 0 ? Math.min(d.actualHours / d.targetHours, 1) : 0.5);
+      return sum + level;
+    }, 0) / Math.max(domains.length, 1) * 100
+  );
+
   return (
     <View style={[styles.container, { backgroundColor: colors.ground }]}>
       <StatusBar style="dark" />
@@ -195,6 +203,32 @@ export default function NowScreen() {
               <TempoText variant="caption" color={colors.ink3}>Settings</TempoText>
             </Pressable>
           </View>
+        </EnterView>
+
+        {/* Tempo index — overall score + domain vessels */}
+        <EnterView delay={staggerDelays[0]} style={styles.section}>
+          <View style={styles.tempoHeader}>
+            <TempoText variant="label" color={colors.ink3}>TEMPO</TempoText>
+            <TempoText variant="heading" color={colors.accent}>{tempoScore}%</TempoText>
+          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.pulseRow}
+          >
+            {domains.map((d, i) => (
+              <GoalCard
+                key={d.id}
+                domain={d.name}
+                goalStatement={d.goal}
+                targetHours={d.targetHours}
+                actualHours={d.actualHours}
+                subjectiveLevel={d.subjectiveLevel}
+                onPress={() => setSheetDomain(d)}
+                index={i}
+              />
+            ))}
+          </ScrollView>
         </EnterView>
 
         {/* Present-moment check-in */}
@@ -298,29 +332,6 @@ export default function NowScreen() {
           </EnterView>
         )}
 
-        {/* Tempo pulse — domain vessels */}
-        <EnterView delay={staggerDelays[4]} style={styles.section}>
-          <TempoText variant="label" color={colors.ink3} style={styles.sectionLabel}>TEMPO</TempoText>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.pulseRow}
-          >
-            {domains.map((d, i) => (
-              <GoalCard
-                key={d.id}
-                domain={d.name}
-                goalStatement={d.goal}
-                targetHours={d.targetHours}
-                actualHours={d.actualHours}
-                subjectiveLevel={d.subjectiveLevel}
-                onPress={() => setSheetDomain(d)}
-                index={i}
-              />
-            ))}
-          </ScrollView>
-        </EnterView>
-
         {/* Sentinel summary — if it's been active */}
         {sentinel.recentActions.length > 0 && (
           <EnterView delay={staggerDelays[4]} style={styles.section}>
@@ -395,6 +406,12 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderRadius: 16,
     borderWidth: 1,
+  },
+  tempoHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    marginBottom: spacing.md,
   },
   pulseRow: {
     gap: spacing.sm,
