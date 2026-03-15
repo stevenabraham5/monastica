@@ -35,7 +35,7 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colors = useColors();
-  const { initialize, user, loading: authLoading } = useAuthStore();
+  const { initialize, hasCompletedWelcome, loading: authLoading } = useAuthStore();
 
   useEffect(() => {
     initialize();
@@ -126,8 +126,8 @@ export default function RootLayout() {
             animation: 'fade',
           }}
         >
-          {!user && !authLoading ? (
-            <Stack.Screen name="sign-in" options={{ headerShown: false }} />
+          {!hasCompletedWelcome && !authLoading ? (
+            <Stack.Screen name="welcome" options={{ headerShown: false }} />
           ) : (
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           )}

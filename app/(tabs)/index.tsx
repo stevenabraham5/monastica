@@ -23,6 +23,7 @@ import { staggerDelays } from '../../constants/motion';
 import { useLifeModel } from '../../store/lifeModel';
 import type { Domain } from '../../store/lifeModel';
 import { useAgentStore } from '../../store/agentStore';
+import { useAuthStore } from '../../store/authStore';
 import { CATEGORY_COLORS, CATEGORY_LABELS, ROLE_COLORS } from '../../store/types';
 import type { BookingProposal, Escalation } from '../../store/types';
 
@@ -247,6 +248,7 @@ export default function NowScreen() {
   const checkinsToday = checkins.filter((c) => c.timestamp >= todayStart.getTime()).length;
 
   const timeCtx = getTimeContext();
+  const userName = useAuthStore((s) => s.userName);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.reflectGround }]}>
@@ -269,7 +271,7 @@ export default function NowScreen() {
         <EnterView delay={staggerDelays[0]}>
           <View style={styles.headerRow}>
             <TempoText variant="body" color={colors.ink2}>
-              {timeCtx.greeting}
+              {timeCtx.greeting}{userName ? `, ${userName}` : ''}
             </TempoText>
             <Pressable
               onPress={() => router.push('/settings')}
@@ -361,7 +363,7 @@ export default function NowScreen() {
           onPress={() => setFeelingModalOpen(false)}
         >
           <Pressable style={[styles.modalContent, { backgroundColor: colors.ground }]}>
-            <TempoText variant="display-lg" italic style={{ marginBottom: spacing.lg }}>
+            <TempoText variant="heading" style={{ fontSize: 28, marginBottom: spacing.xl }}>
               How are you right now?
             </TempoText>
             <View style={styles.feelingsRow}>
@@ -382,7 +384,7 @@ export default function NowScreen() {
                   accessibilityRole="button"
                   accessibilityState={{ selected: selectedFeeling === f }}
                 >
-                  <TempoText variant="caption" color={selectedFeeling === f ? '#FFFFFF' : colors.ink2}>
+                  <TempoText variant="body" color={selectedFeeling === f ? '#FFFFFF' : colors.ink}>
                     {f}
                   </TempoText>
                 </Pressable>
@@ -432,13 +434,13 @@ const styles = StyleSheet.create({
   feelingsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.sm,
+    gap: spacing.md,
     marginTop: spacing.base,
   },
   feelingChip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: 16,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: 20,
     borderWidth: 1,
   },
   tempoHeader: {

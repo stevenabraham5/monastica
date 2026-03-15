@@ -13,7 +13,12 @@ interface AuthState {
   loading: boolean;
   error: string | null;
 
+  /** Local-first: user's name, captured on first launch (no account needed). */
+  userName: string | null;
+  hasCompletedWelcome: boolean;
+
   initialize: () => void;
+  setUserName: (name: string) => void;
   signInWithApple: () => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
@@ -53,6 +58,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   loading: true,
   error: null,
+  userName: null,
+  hasCompletedWelcome: false,
 
   initialize: () => {
     // Get current session
@@ -74,6 +81,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ error: e.message ?? 'Apple sign-in failed', loading: false });
     }
   },
+
+  setUserName: (name: string) => set({ userName: name, hasCompletedWelcome: true }),
 
   signInWithGoogle: async () => {
     try {
