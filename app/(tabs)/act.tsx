@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 
 import { TempoText } from '../../components/TempoText';
-import { ActField } from '../../components/ActField';
+import { SceneBackground } from '../../components/SceneBackground';
 import { EnterView } from '../../components/EnterView';
 import { useColors } from '../../constants/colors';
 import { spacing } from '../../constants/spacing';
@@ -227,7 +227,7 @@ export default function ActScreen() {
 
       {/* Full-screen scene background */}
       <View style={StyleSheet.absoluteFill}>
-        <ActField
+        <SceneBackground
           actionCount={actions.length + pendingEscalations.length + pendingProposals.length}
           completedToday={0}
           fullScreen

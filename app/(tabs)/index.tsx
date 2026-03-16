@@ -15,7 +15,7 @@ import { TempoText } from '../../components/TempoText';
 import { TempoInput } from '../../components/TempoInput';
 import { GoalCard } from '../../components/GoalCard';
 import { DomainSheet } from '../../components/DomainSheet';
-import { ActField } from '../../components/ActField';
+import { SceneBackground } from '../../components/SceneBackground';
 import { EnterView } from '../../components/EnterView';
 import { useColors } from '../../constants/colors';
 import { spacing } from '../../constants/spacing';
@@ -176,7 +176,7 @@ export default function NowScreen() {
 
       {/* Full-screen scene background */}
       <View style={StyleSheet.absoluteFill}>
-        <ActField actionCount={0} completedToday={0} mood={selectedFeeling} fullScreen />
+        <SceneBackground actionCount={0} completedToday={0} mood={selectedFeeling} fullScreen />
       </View>
 
       {/* Sticky header */}

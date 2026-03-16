@@ -7,6 +7,8 @@ import type { Session, User } from '@supabase/supabase-js';
 
 WebBrowser.maybeCompleteAuthSession();
 
+export type ScenePreference = 'farmland' | 'mountain' | 'cityscape';
+
 interface AuthState {
   session: Session | null;
   user: User | null;
@@ -16,9 +18,11 @@ interface AuthState {
   /** Local-first: user's name, captured on first launch (no account needed). */
   userName: string | null;
   hasCompletedWelcome: boolean;
+  scenePreference: ScenePreference;
 
   initialize: () => void;
   setUserName: (name: string) => void;
+  setScenePreference: (scene: ScenePreference) => void;
   signInWithApple: () => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
@@ -60,6 +64,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   error: null,
   userName: null,
   hasCompletedWelcome: false,
+  scenePreference: 'farmland' as ScenePreference,
 
   initialize: () => {
     // Get current session — with catch so we don't hang if Supabase isn't configured
@@ -92,6 +97,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   setUserName: (name: string) => set({ userName: name, hasCompletedWelcome: true }),
+
+  setScenePreference: (scene: ScenePreference) => set({ scenePreference: scene }),
 
   signInWithGoogle: async () => {
     try {

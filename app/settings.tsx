@@ -1,22 +1,34 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, ScrollView, StyleSheet, Pressable, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { TempoText } from '../components/TempoText';
 import { EnterView } from '../components/EnterView';
+import { ActField } from '../components/ActField';
+import { MountainScene } from '../components/MountainScene';
+import { CityScape } from '../components/CityScape';
 import { useColors } from '../constants/colors';
 import { spacing } from '../constants/spacing';
 import { useAgentStore, TIER_DESCRIPTIONS } from '../store/agentStore';
+import { useAuthStore } from '../store/authStore';
+import type { ScenePreference } from '../store/authStore';
 import type { DelegationTier } from '../store/types';
 
 const TIERS: DelegationTier[] = [1, 2, 3, 4, 5];
+
+const SCENE_OPTIONS: { key: ScenePreference; label: string; preview: React.FC<{ fullScreen?: boolean }> }[] = [
+  { key: 'farmland', label: 'Farmland', preview: ({ fullScreen }) => <ActField actionCount={6} completedToday={0} fullScreen={fullScreen} /> },
+  { key: 'mountain', label: 'Mountain', preview: ({ fullScreen }) => <MountainScene actionCount={6} completedToday={0} fullScreen={fullScreen} /> },
+  { key: 'cityscape', label: 'City Scape', preview: ({ fullScreen }) => <CityScape actionCount={6} completedToday={0} fullScreen={fullScreen} /> },
+];
 
 export default function SettingsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { delegationTier, setDelegationTier } = useAgentStore();
+  const { scenePreference, setScenePreference } = useAuthStore();
 
   const handleTierTap = (tier: DelegationTier) => {
     if (tier === delegationTier) return;
@@ -134,6 +146,45 @@ export default function SettingsScreen() {
             </TempoText>
           </View>
         </EnterView>
+
+        {/* Scene selection */}
+        <EnterView delay={120} style={styles.section}>
+          <TempoText variant="label" color={colors.ink3} style={styles.sectionLabel}>
+            SCENE
+          </TempoText>
+          <View style={styles.sceneRow}>
+            {SCENE_OPTIONS.map(({ key, label, preview: Preview }) => {
+              const selected = scenePreference === key;
+              return (
+                <Pressable
+                  key={key}
+                  onPress={() => setScenePreference(key)}
+                  style={[
+                    styles.sceneCard,
+                    {
+                      borderColor: selected ? colors.accent : colors.border,
+                      borderWidth: selected ? 2 : 1,
+                    },
+                  ]}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected }}
+                  accessibilityLabel={`${label} scene`}
+                >
+                  <View style={styles.scenePreview}>
+                    <Preview />
+                  </View>
+                  <TempoText
+                    variant="data"
+                    color={selected ? colors.accent : colors.ink3}
+                    style={styles.sceneLabel}
+                  >
+                    {label}
+                  </TempoText>
+                </Pressable>
+              );
+            })}
+          </View>
+        </EnterView>
       </ScrollView>
     </View>
   );
@@ -186,5 +237,22 @@ const styles = StyleSheet.create({
     marginTop: spacing.xl,
     borderRadius: 12,
     padding: spacing.base,
+  },
+  sceneRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  sceneCard: {
+    flex: 1,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  scenePreview: {
+    height: 100,
+    overflow: 'hidden',
+  },
+  sceneLabel: {
+    textAlign: 'center',
+    paddingVertical: spacing.sm,
   },
 });
