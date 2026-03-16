@@ -11,6 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useColors } from '../constants/colors';
 import { spacing } from '../constants/spacing';
+import { useCelestialPosition } from '../hooks/useCelestialPosition';
 
 /*
   ActField — a green field landscape with:
@@ -90,6 +91,7 @@ function GrassBlade({ config, index }: {
 
 export function ActField({ actionCount, completedToday, fullScreen, mood }: ActFieldProps) {
   const colors = useColors();
+  const { leftPct, topPct, isNight } = useCelestialPosition();
   const fieldGreen = '#4A8C5C';
   const barnColor = colors.ink3;
   const isRainy = mood ? RAINY_MOODS.includes(mood) : false;
@@ -99,20 +101,32 @@ export function ActField({ actionCount, completedToday, fullScreen, mood }: ActF
   const bladeCount = Math.max(actionCount + 12, 18);
   const bladeConfigs = useBladeConfigs(bladeCount);
 
-  // Sky color shifts with mood
-  const skyColor = isRainy ? '#8A9AA8' + '40' : '#D8F0E0' + '30';
-  const groundOpacity = isRainy ? '40' : '30';
+  // Sky color shifts with mood and time
+  const skyColor = isRainy
+    ? '#8A9AA8' + '40'
+    : isNight
+      ? '#1A2840' + '50'
+      : '#D8F0E0' + '30';
+  const groundOpacity = isRainy ? '40' : isNight ? '25' : '30';
 
   return (
-    <View style={[styles.container, fullScreen && styles.containerFull, { backgroundColor: isRainy ? '#6B7B88' + '18' : fieldGreen + '18' }]}>
+    <View style={[styles.container, fullScreen && styles.containerFull, { backgroundColor: isRainy ? '#6B7B88' + '18' : isNight ? '#0E1820' + '20' : fieldGreen + '18' }]}>
       {/* Sky */}
       <View style={[styles.sky, { backgroundColor: skyColor }]} />
 
-      {/* Sun — only in sunny moods */}
-      {isSunny && (
-        <View style={styles.sun}>
+      {/* Sun / Moon — positioned by time of day */}
+      {isSunny && !isNight && (
+        <View style={[styles.celestialBody, { left: `${leftPct}%`, top: `${topPct}%` }]}>
           <View style={[styles.sunBody, { backgroundColor: '#F0C840', opacity: 0.75 }]} />
           <View style={[styles.sunGlow, { backgroundColor: '#F0C840', opacity: 0.30 }]} />
+        </View>
+      )}
+      {isSunny && isNight && (
+        <View style={[styles.celestialBody, { left: `${leftPct}%`, top: `${topPct}%` }]}>
+          <View style={[styles.moonBody, { backgroundColor: '#E0E4E8', opacity: 0.85 }]} />
+          <View style={[styles.moonGlow, { backgroundColor: '#C8D0D8', opacity: 0.20 }]} />
+          <View style={[styles.moonCrater1, { backgroundColor: '#C8CCD0', opacity: 0.40 }]} />
+          <View style={[styles.moonCrater2, { backgroundColor: '#C8CCD0', opacity: 0.30 }]} />
         </View>
       )}
 
@@ -256,13 +270,13 @@ const styles = StyleSheet.create({
     height: '70%',
   },
 
-  // Sun
-  sun: {
+  // Sun / Moon
+  celestialBody: {
     position: 'absolute',
-    top: '6%',
-    right: '12%',
     alignItems: 'center',
     justifyContent: 'center',
+    marginLeft: -20,
+    marginTop: -20,
   },
   sunBody: {
     width: 40,
@@ -274,6 +288,33 @@ const styles = StyleSheet.create({
     width: 68,
     height: 68,
     borderRadius: 34,
+  },
+  moonBody: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+  },
+  moonGlow: {
+    position: 'absolute',
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+  },
+  moonCrater1: {
+    position: 'absolute',
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    top: 8,
+    left: 10,
+  },
+  moonCrater2: {
+    position: 'absolute',
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    top: 18,
+    right: 10,
   },
 
   // Rain cloud

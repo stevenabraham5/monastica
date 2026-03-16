@@ -10,6 +10,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { useColors } from '../constants/colors';
+import { useCelestialPosition } from '../hooks/useCelestialPosition';
 
 /*
   CityScape — urban skyline with:
@@ -87,6 +88,7 @@ function TwinklingWindow({ config, index }: {
 
 export function CityScape({ actionCount, completedToday, fullScreen, mood }: CityScapeProps) {
   const colors = useColors();
+  const { leftPct, topPct, isNight } = useCelestialPosition();
   const isRainy = mood ? RAINY_MOODS.includes(mood) : false;
   const isSunny = !isRainy;
 
@@ -94,20 +96,36 @@ export function CityScape({ actionCount, completedToday, fullScreen, mood }: Cit
   const windowCount = Math.max(20, actionCount + 14);
   const windowConfigs = useWindowConfigs(windowCount);
 
-  const skyColor = isRainy ? '#4A5460' + '50' : '#E8A060' + '30';
-  const skyGradient = isRainy ? '#606870' + '40' : '#F0C878' + '25';
+  const skyColor = isRainy
+    ? '#4A5460' + '50'
+    : isNight
+      ? '#101828' + '55'
+      : '#E8A060' + '30';
+  const skyGradient = isRainy
+    ? '#606870' + '40'
+    : isNight
+      ? '#182030' + '40'
+      : '#F0C878' + '25';
 
   return (
-    <View style={[styles.container, fullScreen && styles.containerFull, { backgroundColor: isRainy ? '#383E48' + '18' : '#F0D0A0' + '18' }]}>
-      {/* Sky — warm sunset or overcast */}
+    <View style={[styles.container, fullScreen && styles.containerFull, { backgroundColor: isRainy ? '#383E48' + '18' : isNight ? '#080C14' + '20' : '#F0D0A0' + '18' }]}>
+      {/* Sky — warm sunset, night, or overcast */}
       <View style={[styles.sky, { backgroundColor: skyColor }]} />
       <View style={[styles.skyLower, { backgroundColor: skyGradient }]} />
 
-      {/* Sun / moon */}
-      {isSunny && (
-        <View style={styles.sun}>
+      {/* Sun / Moon — positioned by time of day */}
+      {isSunny && !isNight && (
+        <View style={[styles.celestialBody, { left: `${leftPct}%`, top: `${topPct}%` }]}>
           <View style={[styles.sunBody, { backgroundColor: '#F0A030', opacity: 0.65 }]} />
           <View style={[styles.sunGlow, { backgroundColor: '#F0A030', opacity: 0.20 }]} />
+        </View>
+      )}
+      {isSunny && isNight && (
+        <View style={[styles.celestialBody, { left: `${leftPct}%`, top: `${topPct}%` }]}>
+          <View style={[styles.moonBody, { backgroundColor: '#E0E4E8', opacity: 0.85 }]} />
+          <View style={[styles.moonGlow, { backgroundColor: '#C8D0D8', opacity: 0.25 }]} />
+          <View style={[styles.moonCrater1, { backgroundColor: '#C8CCD0', opacity: 0.40 }]} />
+          <View style={[styles.moonCrater2, { backgroundColor: '#C8CCD0', opacity: 0.30 }]} />
         </View>
       )}
       {isRainy && (
@@ -199,13 +217,13 @@ const styles = StyleSheet.create({
     height: '20%',
   },
 
-  // Sun
-  sun: {
+  // Sun / Moon
+  celestialBody: {
     position: 'absolute',
-    top: '8%',
-    right: '15%',
     alignItems: 'center',
     justifyContent: 'center',
+    marginLeft: -22,
+    marginTop: -22,
   },
   sunBody: {
     width: 44,
@@ -217,6 +235,33 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
+  },
+  moonBody: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+  },
+  moonGlow: {
+    position: 'absolute',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+  },
+  moonCrater1: {
+    position: 'absolute',
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    top: 8,
+    left: 10,
+  },
+  moonCrater2: {
+    position: 'absolute',
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    top: 19,
+    right: 10,
   },
 
   // Rain cloud
