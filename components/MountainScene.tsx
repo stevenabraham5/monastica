@@ -11,7 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useColors } from '../constants/colors';
 import { useCelestialPosition } from '../hooks/useCelestialPosition';
-import { DriftingCloud, DriftingBird } from './SkyElements';
+import { DriftingCloud, DriftingBird, Starfield } from './SkyElements';
 
 /*
   MountainScene — alpine landscape with:
@@ -147,6 +147,9 @@ export function MountainScene({ actionCount, completedToday, fullScreen, mood }:
         </View>
       )}
 
+      {/* Stars — galaxy at night */}
+      {isNight && <Starfield count={55} maxTopPct={55} />}
+
       {/* Clouds — drifting */}
       {isSunny && (
         <>
@@ -181,6 +184,18 @@ export function MountainScene({ actionCount, completedToday, fullScreen, mood }:
 
       {/* Valley floor */}
       <View style={[styles.ground, { backgroundColor: pineGreen + (isRainy ? '35' : '25') }]} />
+
+      {/* Cabin lights — warm dots in the valley at night */}
+      {isNight && (
+        <>
+          <View style={[styles.cabinLight, { left: '22%', bottom: '24%' }]} />
+          <View style={[styles.cabinGlow, { left: '21.2%', bottom: '23.3%' }]} />
+          <View style={[styles.cabinLight, { left: '68%', bottom: '26%' }]} />
+          <View style={[styles.cabinGlow, { left: '67.2%', bottom: '25.3%' }]} />
+          <View style={[styles.cabinLight, { left: '45%', bottom: '22%' }]} />
+          <View style={[styles.cabinGlow, { left: '44.2%', bottom: '21.3%' }]} />
+        </>
+      )}
 
       {/* Pine trees */}
       {treeConfigs.map((cfg, i) => (
@@ -368,6 +383,24 @@ const styles = StyleSheet.create({
     borderLeftColor: 'transparent',
     borderRightColor: 'transparent',
     borderBottomColor: '#2E5040',
+  },
+
+  // Cabin lights at night
+  cabinLight: {
+    position: 'absolute',
+    width: 4,
+    height: 3,
+    backgroundColor: '#F0D870',
+    opacity: 0.85,
+    borderRadius: 1,
+  },
+  cabinGlow: {
+    position: 'absolute',
+    width: 10,
+    height: 8,
+    backgroundColor: '#F0D870',
+    opacity: 0.15,
+    borderRadius: 5,
   },
 
 });

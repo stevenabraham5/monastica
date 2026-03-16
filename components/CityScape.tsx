@@ -11,7 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useColors } from '../constants/colors';
 import { useCelestialPosition } from '../hooks/useCelestialPosition';
-import { DriftingCloud, DriftingBird } from './SkyElements';
+import { DriftingCloud, DriftingBird, Starfield } from './SkyElements';
 
 /*
   CityScape — urban skyline with:
@@ -143,6 +143,9 @@ export function CityScape({ actionCount, completedToday, fullScreen, mood }: Cit
         </View>
       )}
 
+      {/* Stars — galaxy at night */}
+      {isNight && <Starfield count={40} maxTopPct={45} />}
+
       {/* Clouds — drifting */}
       {isSunny && (
         <>
@@ -195,15 +198,15 @@ export function CityScape({ actionCount, completedToday, fullScreen, mood }: Cit
       {/* Street lamp */}
       <View style={styles.lampPost}>
         <View style={[styles.lampPole, { backgroundColor: bldgColor, opacity: 0.60 }]} />
-        <View style={[styles.lampHead, { backgroundColor: '#F0D870', opacity: isSunny ? 0.5 : 0.75 }]} />
-        <View style={[styles.lampGlow, { backgroundColor: '#F0D870', opacity: isSunny ? 0.15 : 0.30 }]} />
+        <View style={[styles.lampHead, { backgroundColor: '#F0D870', opacity: isNight ? 0.90 : isSunny ? 0.5 : 0.75 }]} />
+        <View style={[styles.lampGlow, { backgroundColor: '#F0D870', opacity: isNight ? 0.40 : isSunny ? 0.15 : 0.30 }]} />
       </View>
 
       {/* Second lamp */}
       <View style={styles.lampPost2}>
         <View style={[styles.lampPole, { backgroundColor: bldgColor, opacity: 0.55 }]} />
-        <View style={[styles.lampHead, { backgroundColor: '#F0D870', opacity: isSunny ? 0.45 : 0.70 }]} />
-        <View style={[styles.lampGlow, { backgroundColor: '#F0D870', opacity: isSunny ? 0.12 : 0.25 }]} />
+        <View style={[styles.lampHead, { backgroundColor: '#F0D870', opacity: isNight ? 0.85 : isSunny ? 0.45 : 0.70 }]} />
+        <View style={[styles.lampGlow, { backgroundColor: '#F0D870', opacity: isNight ? 0.35 : isSunny ? 0.12 : 0.25 }]} />
       </View>
     </View>
   );

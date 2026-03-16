@@ -12,7 +12,7 @@ import Animated, {
 import { useColors } from '../constants/colors';
 import { spacing } from '../constants/spacing';
 import { useCelestialPosition } from '../hooks/useCelestialPosition';
-import { DriftingCloud, DriftingBird } from './SkyElements';
+import { DriftingCloud, DriftingBird, Starfield } from './SkyElements';
 
 /*
   ActField — a green field landscape with:
@@ -150,6 +150,9 @@ export function ActField({ actionCount, completedToday, fullScreen, mood }: ActF
         </View>
       )}
 
+      {/* Stars — galaxy at night */}
+      {isNight && <Starfield count={50} maxTopPct={60} />}
+
       {/* Clouds — drifting across sky */}
       {isSunny && (
         <>
@@ -199,7 +202,14 @@ export function ActField({ actionCount, completedToday, fullScreen, mood }: ActF
           opacity: 0.72,
         }]} />
         {/* Barn door */}
-        <View style={[styles.barnDoor, { backgroundColor: fieldGreen + '55' }]} />
+        <View style={[styles.barnDoor, { backgroundColor: isNight ? '#F0D870' : fieldGreen + '55', opacity: isNight ? 0.75 : 1 }]} />
+        {/* Barn window — warm glow at night */}
+        {isNight && (
+          <>
+            <View style={styles.barnWindow} />
+            <View style={styles.barnWindowGlow} />
+          </>
+        )}
         {/* Silo next to barn */}
         <View style={[styles.silo, { backgroundColor: barnColor, opacity: 0.65 }]} />
         <View style={[styles.siloTop, { backgroundColor: barnColor, opacity: 0.65, borderRadius: 4 }]} />
@@ -403,6 +413,26 @@ const styles = StyleSheet.create({
     height: 12,
     borderTopLeftRadius: 4,
     borderTopRightRadius: 4,
+  },
+  barnWindow: {
+    position: 'absolute',
+    top: 4,
+    left: 4,
+    width: 5,
+    height: 5,
+    backgroundColor: '#F0D870',
+    opacity: 0.80,
+    borderRadius: 1,
+  },
+  barnWindowGlow: {
+    position: 'absolute',
+    top: 2,
+    left: 2,
+    width: 9,
+    height: 9,
+    backgroundColor: '#F0D870',
+    opacity: 0.18,
+    borderRadius: 5,
   },
   silo: {
     position: 'absolute',

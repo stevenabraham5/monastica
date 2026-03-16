@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -11,9 +11,96 @@ import Animated, {
 } from 'react-native-reanimated';
 
 /*
-  Shared animated elements for scenes — clouds and birds that
-  drift effortlessly across the sky.
+  Shared animated elements for scenes — clouds, birds, and stars
+  that drift effortlessly across the sky.
 */
+
+// ── Starfield — galaxy of twinkling stars ──
+
+interface StarfieldProps {
+  /** Number of stars */
+  count?: number;
+  /** Max height % for star placement (keep above ground) */
+  maxTopPct?: number;
+}
+
+function TwinklingStar({ leftPct, topPct, size, baseOpacity, speed, delay }: {
+  leftPct: number; topPct: number; size: number; baseOpacity: number; speed: number; delay: number;
+}) {
+  const twinkle = useSharedValue(baseOpacity);
+
+  useEffect(() => {
+    twinkle.value = withDelay(delay,
+      withRepeat(
+        withSequence(
+          withTiming(baseOpacity * 0.2, { duration: speed, easing: Easing.inOut(Easing.sin) }),
+          withTiming(baseOpacity, { duration: speed, easing: Easing.inOut(Easing.sin) }),
+        ),
+        -1,
+      ),
+    );
+  }, []);
+
+  const style = useAnimatedStyle(() => ({
+    opacity: twinkle.value,
+  }));
+
+  return (
+    <Animated.View
+      style={[
+        starStyles.star,
+        {
+          left: `${leftPct}%`,
+          top: `${topPct}%`,
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+        },
+        style,
+      ]}
+    />
+  );
+}
+
+function useStarConfigs(count: number, maxTopPct: number) {
+  return useMemo(() => {
+    const configs = [];
+    for (let i = 0; i < count; i++) {
+      const seed = Math.sin(i * 137.508 + 42) * 10000;
+      const rand = seed - Math.floor(seed);
+      const seed2 = Math.sin(i * 97.3 + 17) * 10000;
+      const rand2 = seed2 - Math.floor(seed2);
+      configs.push({
+        leftPct: 2 + rand * 96,
+        topPct: 2 + rand2 * (maxTopPct - 4),
+        size: rand > 0.85 ? 3 : rand > 0.5 ? 2 : 1.5,
+        baseOpacity: 0.4 + rand * 0.55,
+        speed: 1800 + rand2 * 3000,
+        delay: (i * 200) % 4000,
+      });
+    }
+    return configs;
+  }, [count, maxTopPct]);
+}
+
+export function Starfield({ count = 45, maxTopPct = 65 }: StarfieldProps) {
+  const stars = useStarConfigs(count, maxTopPct);
+
+  return (
+    <>
+      {stars.map((s, i) => (
+        <TwinklingStar key={i} {...s} />
+      ))}
+    </>
+  );
+}
+
+const starStyles = StyleSheet.create({
+  star: {
+    position: 'absolute',
+    backgroundColor: '#E8E0F0',
+  },
+});
 
 // ── Drifting Cloud ──
 
