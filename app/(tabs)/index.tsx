@@ -15,7 +15,7 @@ import { TempoText } from '../../components/TempoText';
 import { TempoInput } from '../../components/TempoInput';
 import { GoalCard } from '../../components/GoalCard';
 import { DomainSheet } from '../../components/DomainSheet';
-import { ReflectSceneCarousel } from '../../components/ReflectSceneCarousel';
+import { ActField } from '../../components/ActField';
 import { EnterView } from '../../components/EnterView';
 import { useColors } from '../../constants/colors';
 import { spacing } from '../../constants/spacing';
@@ -176,11 +176,16 @@ export default function NowScreen() {
 
       {/* Full-screen scene background */}
       <View style={StyleSheet.absoluteFill}>
-        <ReflectSceneCarousel checkinsToday={checkinsToday} latestFeeling={selectedFeeling} fullScreen />
+        <ActField actionCount={0} completedToday={0} mood={selectedFeeling} fullScreen />
+      </View>
+
+      {/* Sticky header */}
+      <View style={[styles.stickyHeader, { paddingTop: insets.top + spacing.md }]}>
+        <TempoText variant="heading">Reflect</TempoText>
       </View>
 
       {/* Top content — greeting + check-in */}
-      <View style={[styles.topContent, { paddingTop: insets.top + spacing.xl }]}>
+      <View style={[styles.topContent, { paddingTop: insets.top + spacing.xl + 44 }]}>
         <EnterView delay={staggerDelays[0]}>
           <View style={styles.headerRow}>
             <TempoText variant="body" color={colors.ink2}>
@@ -340,6 +345,10 @@ export default function NowScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  stickyHeader: {
+    paddingHorizontal: spacing.xl,
+    zIndex: 10,
   },
   topContent: {
     paddingHorizontal: spacing.xl,

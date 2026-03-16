@@ -17,13 +17,18 @@ import { spacing } from '../constants/spacing';
   - Distant barn and fence line on the horizon
   - Many swaying grass stalks in the foreground
   - Action dots at the base
+  - Mood-responsive: sunny moods show sun, low moods show rain cloud
   - Conveys: GO. DO. LIVE.
 */
+
+const SUNNY_MOODS = ['rested', 'focused', 'steady', 'energised'];
+const RAINY_MOODS = ['scattered', 'drained', 'restless', 'flat'];
 
 interface ActFieldProps {
   actionCount: number;
   completedToday: number;
   fullScreen?: boolean;
+  mood?: string | null;
 }
 
 // Pre-generate stable blade configs so they don't change on re-render
@@ -83,40 +88,71 @@ function GrassBlade({ config, index }: {
   );
 }
 
-export function ActField({ actionCount, completedToday, fullScreen }: ActFieldProps) {
+export function ActField({ actionCount, completedToday, fullScreen, mood }: ActFieldProps) {
   const colors = useColors();
   const fieldGreen = '#4A8C5C';
   const barnColor = colors.ink3;
+  const isRainy = mood ? RAINY_MOODS.includes(mood) : false;
+  const isSunny = !isRainy;
 
   // More grass blades — at least 18 ambient + action blades
   const bladeCount = Math.max(actionCount + 12, 18);
   const bladeConfigs = useBladeConfigs(bladeCount);
 
+  // Sky color shifts with mood
+  const skyColor = isRainy ? '#8A9AA8' + '40' : '#D8F0E0' + '30';
+  const groundOpacity = isRainy ? '40' : '30';
+
   return (
-    <View style={[styles.container, fullScreen && styles.containerFull, { backgroundColor: fieldGreen + '18' }]}>
+    <View style={[styles.container, fullScreen && styles.containerFull, { backgroundColor: isRainy ? '#6B7B88' + '18' : fieldGreen + '18' }]}>
       {/* Sky */}
-      <View style={[styles.sky, { backgroundColor: '#D8F0E0' + '30' }]} />
+      <View style={[styles.sky, { backgroundColor: skyColor }]} />
 
-      {/* Sun */}
-      <View style={styles.sun}>
-        <View style={[styles.sunBody, { backgroundColor: '#F0C840', opacity: 0.75 }]} />
-        <View style={[styles.sunGlow, { backgroundColor: '#F0C840', opacity: 0.30 }]} />
-      </View>
+      {/* Sun — only in sunny moods */}
+      {isSunny && (
+        <View style={styles.sun}>
+          <View style={[styles.sunBody, { backgroundColor: '#F0C840', opacity: 0.75 }]} />
+          <View style={[styles.sunGlow, { backgroundColor: '#F0C840', opacity: 0.30 }]} />
+        </View>
+      )}
 
-      {/* Clouds */}
-      <View style={styles.cloud1}>
-        <View style={[styles.cloudPuff, { width: 60, height: 24, backgroundColor: '#fff', opacity: 0.70 }]} />
-        <View style={[styles.cloudPuff, { width: 40, height: 18, left: 42, top: -4, backgroundColor: '#fff', opacity: 0.60 }]} />
-        <View style={[styles.cloudPuff, { width: 30, height: 16, left: -12, top: 2, backgroundColor: '#fff', opacity: 0.55 }]} />
-      </View>
-      <View style={styles.cloud2}>
-        <View style={[styles.cloudPuff, { width: 50, height: 20, backgroundColor: '#fff', opacity: 0.65 }]} />
-        <View style={[styles.cloudPuff, { width: 34, height: 16, left: 36, top: -3, backgroundColor: '#fff', opacity: 0.55 }]} />
-      </View>
-      <View style={styles.cloud3}>
-        <View style={[styles.cloudPuff, { width: 44, height: 18, backgroundColor: '#fff', opacity: 0.60 }]} />
-        <View style={[styles.cloudPuff, { width: 28, height: 14, left: 30, top: -2, backgroundColor: '#fff', opacity: 0.50 }]} />
-      </View>
+      {/* Rain cloud — only in rainy moods */}
+      {isRainy && (
+        <View style={styles.rainCloudGroup}>
+          {/* Main dark cloud body */}
+          <View style={[styles.cloudPuff, { width: 80, height: 32, backgroundColor: '#5A6872', opacity: 0.85, borderRadius: 20 }]} />
+          <View style={[styles.cloudPuff, { width: 56, height: 28, left: 55, top: -6, backgroundColor: '#4E5E68', opacity: 0.80, borderRadius: 20 }]} />
+          <View style={[styles.cloudPuff, { width: 44, height: 24, left: -18, top: 4, backgroundColor: '#5A6872', opacity: 0.75, borderRadius: 20 }]} />
+          <View style={[styles.cloudPuff, { width: 64, height: 26, left: 20, top: -10, backgroundColor: '#4A5A64', opacity: 0.90, borderRadius: 20 }]} />
+          {/* Rain streaks */}
+          <View style={[styles.rainStreak, { left: 12, top: 32 }]} />
+          <View style={[styles.rainStreak, { left: 28, top: 36 }]} />
+          <View style={[styles.rainStreak, { left: 44, top: 34 }]} />
+          <View style={[styles.rainStreak, { left: 60, top: 38 }]} />
+          <View style={[styles.rainStreak, { left: 76, top: 33 }]} />
+          <View style={[styles.rainStreak, { left: 20, top: 42 }]} />
+          <View style={[styles.rainStreak, { left: 52, top: 44 }]} />
+        </View>
+      )}
+
+      {/* Clouds — lighter in sunny, hidden in rainy */}
+      {isSunny && (
+        <>
+          <View style={styles.cloud1}>
+            <View style={[styles.cloudPuff, { width: 60, height: 24, backgroundColor: '#fff', opacity: 0.70 }]} />
+            <View style={[styles.cloudPuff, { width: 40, height: 18, left: 42, top: -4, backgroundColor: '#fff', opacity: 0.60 }]} />
+            <View style={[styles.cloudPuff, { width: 30, height: 16, left: -12, top: 2, backgroundColor: '#fff', opacity: 0.55 }]} />
+          </View>
+          <View style={styles.cloud2}>
+            <View style={[styles.cloudPuff, { width: 50, height: 20, backgroundColor: '#fff', opacity: 0.65 }]} />
+            <View style={[styles.cloudPuff, { width: 34, height: 16, left: 36, top: -3, backgroundColor: '#fff', opacity: 0.55 }]} />
+          </View>
+          <View style={styles.cloud3}>
+            <View style={[styles.cloudPuff, { width: 44, height: 18, backgroundColor: '#fff', opacity: 0.60 }]} />
+            <View style={[styles.cloudPuff, { width: 28, height: 14, left: 30, top: -2, backgroundColor: '#fff', opacity: 0.50 }]} />
+          </View>
+        </>
+      )}
 
       {/* Distant hills */}
       <View style={[styles.distantHill1, { backgroundColor: fieldGreen + '50' }]} />
@@ -161,7 +197,7 @@ export function ActField({ actionCount, completedToday, fullScreen }: ActFieldPr
       </View>
 
       {/* Ground */}
-      <View style={[styles.ground, { backgroundColor: fieldGreen + '30' }]} />
+      <View style={[styles.ground, { backgroundColor: fieldGreen + groundOpacity }]} />
 
       {/* ── Small animals in foreground ── */}
       {/* Bird on fence */}
@@ -238,6 +274,22 @@ const styles = StyleSheet.create({
     width: 68,
     height: 68,
     borderRadius: 34,
+  },
+
+  // Rain cloud
+  rainCloudGroup: {
+    position: 'absolute',
+    top: '6%',
+    right: '10%',
+    flexDirection: 'row',
+  },
+  rainStreak: {
+    position: 'absolute',
+    width: 1.5,
+    height: 12,
+    backgroundColor: '#7090A8',
+    opacity: 0.5,
+    borderRadius: 1,
   },
 
   // Clouds

@@ -231,22 +231,23 @@ export default function PatternsScreen() {
     >
       <StatusBar style="dark" />
 
+      {/* Sticky header */}
+      <View style={[styles.stickyHeader, { paddingTop: insets.top + spacing.md }]}>
+        <TempoText variant="heading">{userName ? `${userName}'s` : ''} Grow</TempoText>
+        <TempoText variant="caption" color={colors.ink3} style={{ marginTop: spacing.xs }}>
+          Where you go to grow
+        </TempoText>
+      </View>
+
       <ScrollView
         ref={scrollRef}
         contentContainerStyle={[
           styles.content,
-          { paddingTop: insets.top + spacing.xl },
+          { paddingTop: insets.top + spacing.xl + 60 },
         ]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Header */}
-        <EnterView delay={staggerDelays[0]}>
-          <TempoText variant="heading">{userName ? `${userName}'s` : ''} Grow</TempoText>
-          <TempoText variant="caption" color={colors.ink3} style={{ marginTop: spacing.xs }}>
-            Where you go to grow
-          </TempoText>
-        </EnterView>
 
         {/* Tree hero — branches are domains */}
         <EnterView delay={staggerDelays[0]} style={{ marginTop: spacing.xl }}>
@@ -374,6 +375,10 @@ export default function PatternsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  stickyHeader: {
+    paddingHorizontal: spacing.xl,
+    zIndex: 10,
   },
   content: {
     paddingHorizontal: spacing.xl,

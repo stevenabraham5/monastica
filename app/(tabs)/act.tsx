@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 
 import { TempoText } from '../../components/TempoText';
-import { ActSceneCarousel } from '../../components/ActSceneCarousel';
+import { ActField } from '../../components/ActField';
 import { EnterView } from '../../components/EnterView';
 import { useColors } from '../../constants/colors';
 import { spacing } from '../../constants/spacing';
@@ -227,28 +227,30 @@ export default function ActScreen() {
 
       {/* Full-screen scene background */}
       <View style={StyleSheet.absoluteFill}>
-        <ActSceneCarousel
+        <ActField
           actionCount={actions.length + pendingEscalations.length + pendingProposals.length}
           completedToday={0}
           fullScreen
         />
       </View>
 
+      {/* Sticky header */}
+      <View style={[styles.stickyHeader, { paddingTop: insets.top + spacing.md }]}>
+        <TempoText variant="heading">{userName ? `${userName}'s` : ''} Act</TempoText>
+        <TempoText variant="caption" color={colors.ink3} style={{ marginTop: spacing.xs }}>
+          {actions.length > 0
+            ? `${actions.length} thing${actions.length === 1 ? '' : 's'} waiting for you`
+            : 'Nothing waiting. You\u2019re clear.'}
+        </TempoText>
+      </View>
+
       <ScrollView
         contentContainerStyle={[
           styles.content,
-          { paddingTop: insets.top + spacing.xl },
+          { paddingTop: insets.top + spacing.xl + 60 },
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <EnterView delay={staggerDelays[0]}>
-          <TempoText variant="heading">{userName ? `${userName}'s` : ''} Act</TempoText>
-          <TempoText variant="caption" color={colors.ink3} style={{ marginTop: spacing.xs }}>
-            {actions.length > 0
-              ? `${actions.length} thing${actions.length === 1 ? '' : 's'} waiting for you`
-              : 'Nothing waiting. You\u2019re clear.'}
-          </TempoText>
-        </EnterView>
 
         {/* Escalations — needs your decision */}
         {pendingEscalations.length > 0 && (
@@ -362,6 +364,10 @@ export default function ActScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  stickyHeader: {
+    paddingHorizontal: spacing.xl,
+    zIndex: 10,
   },
   content: {
     paddingHorizontal: spacing.xl,
