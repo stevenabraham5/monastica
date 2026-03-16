@@ -12,6 +12,7 @@ import Animated, {
 import { useColors } from '../constants/colors';
 import { spacing } from '../constants/spacing';
 import { useCelestialPosition } from '../hooks/useCelestialPosition';
+import { DriftingCloud, DriftingBird } from './SkyElements';
 
 /*
   ActField — a green field landscape with:
@@ -149,22 +150,31 @@ export function ActField({ actionCount, completedToday, fullScreen, mood }: ActF
         </View>
       )}
 
-      {/* Clouds — lighter in sunny, hidden in rainy */}
+      {/* Clouds — drifting across sky */}
       {isSunny && (
         <>
-          <View style={styles.cloud1}>
-            <View style={[styles.cloudPuff, { width: 60, height: 24, backgroundColor: '#fff', opacity: 0.70 }]} />
-            <View style={[styles.cloudPuff, { width: 40, height: 18, left: 42, top: -4, backgroundColor: '#fff', opacity: 0.60 }]} />
-            <View style={[styles.cloudPuff, { width: 30, height: 16, left: -12, top: 2, backgroundColor: '#fff', opacity: 0.55 }]} />
-          </View>
-          <View style={styles.cloud2}>
-            <View style={[styles.cloudPuff, { width: 50, height: 20, backgroundColor: '#fff', opacity: 0.65 }]} />
-            <View style={[styles.cloudPuff, { width: 34, height: 16, left: 36, top: -3, backgroundColor: '#fff', opacity: 0.55 }]} />
-          </View>
-          <View style={styles.cloud3}>
-            <View style={[styles.cloudPuff, { width: 44, height: 18, backgroundColor: '#fff', opacity: 0.60 }]} />
-            <View style={[styles.cloudPuff, { width: 28, height: 14, left: 30, top: -2, backgroundColor: '#fff', opacity: 0.50 }]} />
-          </View>
+          <DriftingCloud
+            startLeft={10} startTop={10} speed={22000} delay={0} driftX={45} driftY={5}
+            puffs={[
+              { width: 60, height: 24, opacity: 0.70 },
+              { width: 40, height: 18, offsetX: 42, offsetY: -4, opacity: 0.60 },
+              { width: 30, height: 16, offsetX: -12, offsetY: 2, opacity: 0.55 },
+            ]}
+          />
+          <DriftingCloud
+            startLeft={55} startTop={6} speed={26000} delay={3000} driftX={35} driftY={4}
+            puffs={[
+              { width: 50, height: 20, opacity: 0.65 },
+              { width: 34, height: 16, offsetX: 36, offsetY: -3, opacity: 0.55 },
+            ]}
+          />
+          <DriftingCloud
+            startLeft={35} startTop={20} speed={20000} delay={7000} driftX={50} driftY={6}
+            puffs={[
+              { width: 44, height: 18, opacity: 0.60 },
+              { width: 28, height: 14, offsetX: 30, offsetY: -2, opacity: 0.50 },
+            ]}
+          />
         </>
       )}
 
@@ -227,11 +237,8 @@ export function ActField({ actionCount, completedToday, fullScreen, mood }: ActF
         <View style={[styles.rabbitEar, styles.rabbitEarL, { backgroundColor: barnColor, opacity: 0.65 }]} />
         <View style={[styles.rabbitEar, styles.rabbitEarR, { backgroundColor: barnColor, opacity: 0.65 }]} />
       </View>
-      {/* Second bird — flying in sky */}
-      <View style={styles.bird2}>
-        <View style={[styles.birdWingL, { backgroundColor: barnColor, opacity: 0.60 }]} />
-        <View style={[styles.birdWingR, { backgroundColor: barnColor, opacity: 0.60 }]} />
-      </View>
+      {/* Flying bird — drifting across sky */}
+      <DriftingBird startLeft={65} startTop={14} speed={16000} delay={1000} driftX={55} driftY={12} color={barnColor} />
 
       {/* Grass blades — many, swaying */}
       {bladeConfigs.map((cfg, i) => (
@@ -333,25 +340,7 @@ const styles = StyleSheet.create({
     borderRadius: 1,
   },
 
-  // Clouds
-  cloud1: {
-    position: 'absolute',
-    top: '10%',
-    left: '12%',
-    flexDirection: 'row',
-  },
-  cloud2: {
-    position: 'absolute',
-    top: '6%',
-    right: '30%',
-    flexDirection: 'row',
-  },
-  cloud3: {
-    position: 'absolute',
-    top: '20%',
-    left: '50%',
-    flexDirection: 'row',
-  },
+  // Clouds — now animated via DriftingCloud, keep cloudPuff for rain cloud
   cloudPuff: {
     borderRadius: 20,
     position: 'absolute',
@@ -560,24 +549,4 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '10deg' }],
   },
 
-  // Flying bird
-  bird2: {
-    position: 'absolute',
-    top: '14%',
-    right: '30%',
-  },
-  birdWingL: {
-    width: 14,
-    height: 3,
-    borderRadius: 1.5,
-    transform: [{ rotate: '-25deg' }],
-  },
-  birdWingR: {
-    width: 14,
-    height: 3,
-    borderRadius: 1.5,
-    marginTop: -1,
-    marginLeft: 3,
-    transform: [{ rotate: '25deg' }],
-  },
 });

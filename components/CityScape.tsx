@@ -11,6 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useColors } from '../constants/colors';
 import { useCelestialPosition } from '../hooks/useCelestialPosition';
+import { DriftingCloud, DriftingBird } from './SkyElements';
 
 /*
   CityScape — urban skyline with:
@@ -142,13 +143,30 @@ export function CityScape({ actionCount, completedToday, fullScreen, mood }: Cit
         </View>
       )}
 
-      {/* Clouds */}
+      {/* Clouds — drifting */}
       {isSunny && (
-        <View style={styles.cloud1}>
-          <View style={[styles.cloudPuff, { width: 48, height: 18, backgroundColor: '#F0D0A0', opacity: 0.50 }]} />
-          <View style={[styles.cloudPuff, { width: 32, height: 14, left: 34, top: -2, backgroundColor: '#F0D0A0', opacity: 0.40 }]} />
-        </View>
+        <>
+          <DriftingCloud
+            startLeft={15} startTop={12} speed={24000} delay={0} driftX={50} driftY={5}
+            color="#F0D0A0"
+            puffs={[
+              { width: 48, height: 18, opacity: 0.50 },
+              { width: 32, height: 14, offsetX: 34, offsetY: -2, opacity: 0.40 },
+            ]}
+          />
+          <DriftingCloud
+            startLeft={60} startTop={6} speed={20000} delay={4000} driftX={35} driftY={4}
+            color="#F0D0A0"
+            puffs={[
+              { width: 40, height: 16, opacity: 0.45 },
+              { width: 28, height: 12, offsetX: 28, offsetY: -2, opacity: 0.35 },
+            ]}
+          />
+        </>
       )}
+
+      {/* Bird drifting over the city */}
+      <DriftingBird startLeft={40} startTop={10} speed={15000} delay={3000} driftX={55} driftY={10} color={bldgColor} wingWidth={12} />
 
       {/* Far buildings — lighter, taller */}
       <View style={[styles.bldgFar1, { backgroundColor: bldgColor + '35' }]} />
@@ -280,13 +298,7 @@ const styles = StyleSheet.create({
     borderRadius: 1,
   },
 
-  // Clouds
-  cloud1: {
-    position: 'absolute',
-    top: '12%',
-    left: '20%',
-    flexDirection: 'row',
-  },
+  // Clouds — now animated via DriftingCloud, keep cloudPuff for rain
   cloudPuff: {
     borderRadius: 20,
     position: 'absolute',

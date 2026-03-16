@@ -11,6 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useColors } from '../constants/colors';
 import { useCelestialPosition } from '../hooks/useCelestialPosition';
+import { DriftingCloud, DriftingBird } from './SkyElements';
 
 /*
   MountainScene — alpine landscape with:
@@ -146,17 +147,23 @@ export function MountainScene({ actionCount, completedToday, fullScreen, mood }:
         </View>
       )}
 
-      {/* Clouds */}
+      {/* Clouds — drifting */}
       {isSunny && (
         <>
-          <View style={styles.cloud1}>
-            <View style={[styles.cloudPuff, { width: 54, height: 20, backgroundColor: '#fff', opacity: 0.65 }]} />
-            <View style={[styles.cloudPuff, { width: 36, height: 16, left: 38, top: -3, backgroundColor: '#fff', opacity: 0.55 }]} />
-          </View>
-          <View style={styles.cloud2}>
-            <View style={[styles.cloudPuff, { width: 44, height: 18, backgroundColor: '#fff', opacity: 0.55 }]} />
-            <View style={[styles.cloudPuff, { width: 30, height: 14, left: 32, top: -2, backgroundColor: '#fff', opacity: 0.45 }]} />
-          </View>
+          <DriftingCloud
+            startLeft={60} startTop={8} speed={24000} delay={0} driftX={40} driftY={5}
+            puffs={[
+              { width: 54, height: 20, opacity: 0.65 },
+              { width: 36, height: 16, offsetX: 38, offsetY: -3, opacity: 0.55 },
+            ]}
+          />
+          <DriftingCloud
+            startLeft={30} startTop={18} speed={20000} delay={5000} driftX={45} driftY={4}
+            puffs={[
+              { width: 44, height: 18, opacity: 0.55 },
+              { width: 30, height: 14, offsetX: 32, offsetY: -2, opacity: 0.45 },
+            ]}
+          />
         </>
       )}
 
@@ -180,11 +187,8 @@ export function MountainScene({ actionCount, completedToday, fullScreen, mood }:
         <SwayingTree key={i} config={cfg} index={i} />
       ))}
 
-      {/* Eagle in sky */}
-      <View style={styles.eagle}>
-        <View style={[styles.eagleWingL, { backgroundColor: mountainBlue, opacity: 0.55 }]} />
-        <View style={[styles.eagleWingR, { backgroundColor: mountainBlue, opacity: 0.55 }]} />
-      </View>
+      {/* Eagle — soaring across sky */}
+      <DriftingBird startLeft={55} startTop={12} speed={18000} delay={2000} driftX={70} driftY={10} color={mountainBlue} wingWidth={16} flapSpeed={1200} />
     </View>
   );
 }
@@ -267,19 +271,7 @@ const styles = StyleSheet.create({
     borderRadius: 40,
   },
 
-  // Clouds
-  cloud1: {
-    position: 'absolute',
-    top: '8%',
-    right: '18%',
-    flexDirection: 'row',
-  },
-  cloud2: {
-    position: 'absolute',
-    top: '18%',
-    left: '55%',
-    flexDirection: 'row',
-  },
+  // Clouds — now animated via DriftingCloud
   cloudPuff: {
     borderRadius: 20,
     position: 'absolute',
@@ -378,24 +370,4 @@ const styles = StyleSheet.create({
     borderBottomColor: '#2E5040',
   },
 
-  // Eagle
-  eagle: {
-    position: 'absolute',
-    top: '12%',
-    right: '35%',
-  },
-  eagleWingL: {
-    width: 16,
-    height: 3,
-    borderRadius: 1.5,
-    transform: [{ rotate: '-20deg' }],
-  },
-  eagleWingR: {
-    width: 16,
-    height: 3,
-    borderRadius: 1.5,
-    marginTop: -1,
-    marginLeft: 4,
-    transform: [{ rotate: '20deg' }],
-  },
 });
