@@ -23,7 +23,6 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
   withDelay,
-  runOnJS,
 } from 'react-native-reanimated';
 import { useColors } from '../constants/colors';
 import { TEMPO_EASING } from '../constants/motion';

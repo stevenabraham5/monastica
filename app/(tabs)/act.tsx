@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { View, ScrollView, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { useRouter } from 'expo-router';
+
 import { TempoText } from '../../components/TempoText';
 import { ActSceneCarousel } from '../../components/ActSceneCarousel';
 import { EnterView } from '../../components/EnterView';
@@ -196,7 +196,6 @@ function ActionCard({
 export default function ActScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const router = useRouter();
   const actions = useActions();
   const { sentinel, cultivator, resolveEscalation, acceptProposal } = useAgentStore();
   const userName = useAuthStore((s) => s.userName);

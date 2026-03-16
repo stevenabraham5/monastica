@@ -9,7 +9,6 @@ import Animated, {
   withSequence,
   Easing,
 } from 'react-native-reanimated';
-import { TempoText } from './TempoText';
 import { useColors } from '../constants/colors';
 import { spacing } from '../constants/spacing';
 

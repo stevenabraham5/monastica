@@ -49,36 +49,7 @@ export default function TabLayout() {
           title: 'Grow',
         }}
       />
-      <Tabs.Screen
-        name="reflection"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="coach"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="agent"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="goals"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="onboarding"
-        options={{
-          href: null,
-        }}
-      />
+
     </Tabs>
   );
 }

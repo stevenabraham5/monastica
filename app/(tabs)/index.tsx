@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { View, ScrollView, StyleSheet, Pressable, ActivityIndicator, Modal } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, ScrollView, StyleSheet, Pressable, Modal } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -22,10 +22,7 @@ import { spacing } from '../../constants/spacing';
 import { staggerDelays } from '../../constants/motion';
 import { useLifeModel } from '../../store/lifeModel';
 import type { Domain } from '../../store/lifeModel';
-import { useAgentStore } from '../../store/agentStore';
 import { useAuthStore } from '../../store/authStore';
-import { CATEGORY_COLORS, CATEGORY_LABELS, ROLE_COLORS } from '../../store/types';
-import type { BookingProposal, Escalation } from '../../store/types';
 
 // ── Feelings ──
 
@@ -53,32 +50,7 @@ function getTimeContext(): { greeting: string; tip: string } {
   return { greeting: 'Night', tip: 'Let it settle.' };
 }
 
-// ── Agent-simulated responses ──
-// In production these come from the LLM. For now, contextual placeholders.
 
-const ESCALATION_RESPONSES: Record<string, string> = {
-  protected_block_conflict: 'This conflicts with your deep-work block. I can ask Sarah for an async alternative or suggest a 15-min slot outside your protected time.',
-  first_time_organizer: 'First time this person has invited you. I\u2019ll ask for context before committing your time.',
-  relationship_critical: 'This person is on your critical list. I\u2019d attend this one \u2014 the relationship value outweighs the time cost.',
-  no_agenda: 'No agenda provided. I\u2019ll request one before you decide.',
-  below_confidence_threshold: 'Low confidence on this one. Let me gather more context before recommending.',
-  outside_policy: 'This falls outside your standing policies. Your call.',
-  confidential_or_legal: 'Flagged as sensitive. You should handle this directly.',
-};
-
-const PROPOSAL_RESPONSES: Record<string, string> = {
-  mind_thought_partner: 'I found a 45-min gap tomorrow during your peak energy window. Want me to block it?',
-  body_maintenance: 'Your movement is lagging \u2014 I\u2019ve spotted a 30-min window after your 2pm. Should I book it?',
-  serendipity: 'You haven\u2019t had unstructured time in 11 days. I can protect a 1-hour wander block Friday afternoon.',
-  relationships_mentor: 'David hasn\u2019t heard from you in 34 days. I can draft a "quick call?" message and hold a slot Thursday.',
-  body_appointment: 'I can schedule this and send you a reminder the day before.',
-  mind_deep_work: 'I\u2019ll carve out a deep-work block during your peak hours.',
-  relationships_maintenance: 'I\u2019ll find a low-energy slot for this catch-up.',
-  professional_craft: 'I can block craft time during your best focus window.',
-  self_knowledge: 'I\u2019ll protect some space for this.',
-  life_logistics: 'I\u2019ll handle the scheduling and remind you.',
-  recovery: 'Recovery time booked \u2014 I\u2019ll guard it.',
-};
 
 const REFLECTION_RESPONSES = [
   'Noted. That pattern \u2014 reactive mornings bleeding into afternoon fog \u2014 has shown up 3 times this week. Want me to restructure your morning buffer?',
@@ -88,55 +60,7 @@ const REFLECTION_RESPONSES = [
   'Logged. Your body domain is at 43% and this might be connected. When did you last move?',
 ];
 
-// ── Tappable agent row ── single-line item that expands with agent response on tap
 
-function AgentRow({ title, subtitle, tint, onTap, agentResponse }: {
-  title: string;
-  subtitle: string;
-  tint: string;
-  onTap: () => void;
-  agentResponse: string | null;
-}) {
-  const colors = useColors();
-  const [processing, setProcessing] = useState(false);
-  const [response, setResponse] = useState<string | null>(agentResponse);
-
-  const handlePress = useCallback(() => {
-    if (response) return; // already responded
-    setProcessing(true);
-    onTap();
-    // Simulate agent processing delay
-    setTimeout(() => {
-      setProcessing(false);
-    }, 800);
-  }, [response, onTap]);
-
-  return (
-    <Pressable
-      onPress={handlePress}
-      style={[styles.agentRow, { borderLeftColor: tint, backgroundColor: colors.surface }]}
-      accessibilityRole="button"
-    >
-      <View style={styles.agentRowContent}>
-        <TempoText variant="body" numberOfLines={1} style={{ flex: 1 }}>{title}</TempoText>
-        <TempoText variant="caption" color={colors.ink3} numberOfLines={1}>{subtitle}</TempoText>
-      </View>
-      {processing && (
-        <View style={styles.agentBubble}>
-          <ActivityIndicator size="small" color={colors.agent} />
-          <TempoText variant="caption" color={colors.agent} style={{ marginLeft: spacing.sm }}>
-            Tempo is thinking...
-          </TempoText>
-        </View>
-      )}
-      {!processing && response && (
-        <View style={[styles.agentBubble, { backgroundColor: colors.ground }]}>
-          <TempoText variant="caption" color={colors.agent}>{response}</TempoText>
-        </View>
-      )}
-    </Pressable>
-  );
-}
 
 // ── Check-in button — warm animated pill ──
 
@@ -184,10 +108,7 @@ export default function NowScreen() {
     adjustDomainLevel, addDomainEntry, domainEntries,
     reflections, addReflection, updateReflection, checkins,
   } = useLifeModel();
-  const {
-    sentinel, cultivator,
-    resolveEscalation, acceptProposal, deferProposal, dismissProposal,
-  } = useAgentStore();
+
 
   const [selectedFeeling, setSelectedFeeling] = useState<string | null>(lastCheckin?.feeling ?? null);
   const [sheetDomain, setSheetDomain] = useState<Domain | null>(null);
@@ -300,7 +221,6 @@ export default function NowScreen() {
             <GoalCard
               key={d.id}
               domain={d.name}
-              goalStatement={d.goal}
               targetHours={d.targetHours}
               actualHours={d.actualHours}
               subjectiveLevel={d.subjectiveLevel}
@@ -509,35 +429,5 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderRadius: 20,
   },
-  // Agent row — compact tappable item
-  agentRow: {
-    borderLeftWidth: 3,
-    borderRadius: 8,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    marginBottom: spacing.xs,
-  },
-  agentRowContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  agentBubble: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.sm,
-    borderRadius: 8,
-    marginTop: spacing.xs,
-  },
-  // Sentinel summary — now single-line
-  sentinelRow: {
-    paddingVertical: spacing.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  sentinelRowInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
+
 });

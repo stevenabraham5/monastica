@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { View, StyleSheet, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useCallback, useRef } from 'react';
+import { View, StyleSheet, Pressable } from 'react-native';
 import { BottomSheetScrollView, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { TempoText } from './TempoText';
 import { EnterView } from './EnterView';

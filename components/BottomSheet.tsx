@@ -1,10 +1,9 @@
 import React, { forwardRef, useCallback } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import GorhomBottomSheet, {
   BottomSheetBackdrop,
   BottomSheetProps as GorhomProps,
 } from '@gorhom/bottom-sheet';
-import { BlurView } from 'expo-blur';
 import { useColors } from '../constants/colors';
 
 interface BottomSheetProps {

@@ -25,7 +25,6 @@ const domainVisuals: Record<string, { symbol: string; tint: string }> = {
 
 interface GoalCardProps {
   domain: string;
-  goalStatement: string;
   targetHours: number;
   actualHours: number;
   subjectiveLevel?: number | null;
